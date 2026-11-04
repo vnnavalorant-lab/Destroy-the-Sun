@@ -1,0 +1,20 @@
+{
+	"schemaVersion": 1,
+	"id": "sunmod",
+	"version": "${version}",
+	"name": "Sun & Ice Cube",
+	"description": "Sol gigante (10x10x10) que flutua no ar e só leva dano do Ice Cube, um item arremessável que se carrega como um arco.",
+	"authors": ["Você"],
+	"license": "All-Rights-Reserved",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.sunmod.SunMod"],
+		"client": ["com.sunmod.client.SunModClient"]
+	},
+	"depends": {
+		"fabricloader": ">=0.20.1",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

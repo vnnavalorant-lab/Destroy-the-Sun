@@ -1,0 +1,6 @@
+{
+ "model": {
+  "type": "minecraft:model",
+  "model": "sunmod:item/sun_vanilla"
+ }
+}
