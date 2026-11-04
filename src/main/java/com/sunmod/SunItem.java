@@ -7,7 +7,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.UseOnContext;
 
-/** Clique direito em um bloco para colocar o Sol (10x10x10) no mundo. */
+/** Clique direito em um bloco para colocar o Sol (50x50x50) no mundo. */
 public class SunItem extends Item {
 	public SunItem(Properties properties) {
 		super(properties);
@@ -21,7 +21,7 @@ public class SunItem extends Item {
 		BlockPos pos = context.getClickedPos().relative(context.getClickedFace());
 		double y = pos.getY();
 		if (context.getClickedFace() == Direction.DOWN) {
-			y -= 9.0; // clicou no teto de algo: coloca o Sol abaixo
+			y -= 49.0; // clicou no teto de algo: coloca o Sol abaixo
 		}
 
 		SunEntity sun = new SunEntity(ModEntities.SUN, level);

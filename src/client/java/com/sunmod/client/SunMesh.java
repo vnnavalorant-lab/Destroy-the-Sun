@@ -15,7 +15,7 @@ import java.io.InputStream;
 
 /**
  * Malha do sun_vanilla.bbmodel convertida para o arquivo binário
- * assets/sunmod/models/sun_vanilla.mesh (3 esferas, já em escala de blocos).
+ * assets/sunmod/models/sun_vanilla.mesh (3 esferas, já em escala de blocos: 50 de diâmetro).
  * Cada face é um quad (os triângulos têm o último vértice repetido).
  */
 final class SunMesh {

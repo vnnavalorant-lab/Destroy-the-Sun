@@ -13,7 +13,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 /**
- * O Sol: 10x10x10 blocos, fica parado no ar (sem gravidade, nunca se move) e
+ * O Sol: 50x50x50 blocos, fica parado no ar (sem gravidade, nunca se move) e
  * só recebe dano de um {@link IceCubeProjectile}.
  */
 public class SunEntity extends Entity {
@@ -45,13 +45,13 @@ public class SunEntity extends Entity {
 			return false;
 		}
 		this.health -= amount;
-		this.playSound(SoundEvents.GLASS_BREAK, 2.0F, 0.6F);
-		level.sendParticles(ParticleTypes.SNOWFLAKE, this.getX(), this.getY() + 5.0, this.getZ(),
-				40, 3.0, 3.0, 3.0, 0.05);
+		this.playSound(SoundEvents.GLASS_BREAK, 8.0F, 0.6F);
+		level.sendParticles(ParticleTypes.SNOWFLAKE, this.getX(), this.getY() + 25.0, this.getZ(),
+				150, 15.0, 15.0, 15.0, 0.05);
 		if (this.health <= 0.0F) {
-			level.sendParticles(ParticleTypes.FLAME, this.getX(), this.getY() + 5.0, this.getZ(),
-					300, 4.0, 4.0, 4.0, 0.2);
-			this.playSound(SoundEvents.GENERIC_EXPLODE.value(), 4.0F, 0.5F);
+			level.sendParticles(ParticleTypes.FLAME, this.getX(), this.getY() + 25.0, this.getZ(),
+					800, 20.0, 20.0, 20.0, 0.2);
+			this.playSound(SoundEvents.GENERIC_EXPLODE.value(), 16.0F, 0.5F);
 			this.discard();
 		}
 		return true;

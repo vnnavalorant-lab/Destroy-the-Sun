@@ -3,7 +3,7 @@
 	"id": "sunmod",
 	"version": "${version}",
 	"name": "Sun & Ice Cube",
-	"description": "Sol gigante (10x10x10) que flutua no ar e só leva dano do Ice Cube, um item arremessável que se carrega como um arco.",
+	"description": "Sol gigante (50x50x50) que flutua no ar e só leva dano do Ice Cube, um item arremessável que se carrega como um arco.",
 	"authors": ["Você"],
 	"license": "All-Rights-Reserved",
 	"environment": "*",

@@ -13,13 +13,13 @@ public final class ModEntities {
 	private static final ResourceKey<EntityType<?>> ICE_CUBE_KEY =
 			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("ice_cube"));
 
-	/** Sol: caixa de colisão 10 x 10 x 10 blocos. */
+	/** Sol: caixa de colisão 50 x 50 x 50 blocos. */
 	public static final EntityType<SunEntity> SUN = Registry.register(
 			BuiltInRegistries.ENTITY_TYPE, SUN_KEY,
 			EntityType.Builder.<SunEntity>of(SunEntity::new, MobCategory.MISC)
-					.sized(10.0F, 10.0F)
+					.sized(50.0F, 50.0F)
 					.fireImmune()
-					.clientTrackingRange(16)
+					.clientTrackingRange(32)
 					.updateInterval(20)
 					.build(SUN_KEY));
 

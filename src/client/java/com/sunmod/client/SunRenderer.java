@@ -11,7 +11,7 @@ import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.resources.Identifier;
 
 /**
- * Desenha a malha das 3 esferas do sun_vanilla.bbmodel (10 x 10 x 10 blocos).
+ * Desenha a malha das 3 esferas do sun_vanilla.bbmodel (50 x 50 x 50 blocos).
  * As 2 esferas externas são o "outline" (casco invertido): precisam de culling
  * de faces para que só apareça a borda ao redor do núcleo.
  */
