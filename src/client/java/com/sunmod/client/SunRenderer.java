@@ -10,7 +10,11 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.resources.Identifier;
 
-/** Desenha a malha das 3 esferas do sun_vanilla.bbmodel (10 x 10 x 10 blocos). */
+/**
+ * Desenha a malha das 3 esferas do sun_vanilla.bbmodel (10 x 10 x 10 blocos).
+ * As 2 esferas externas são o "outline" (casco invertido): precisam de culling
+ * de faces para que só apareça a borda ao redor do núcleo.
+ */
 public class SunRenderer extends EntityRenderer<SunEntity, SunRenderState> {
 	private static final Identifier TEXTURE = SunMod.id("textures/entity/sun_vanilla.png");
 
@@ -25,7 +29,7 @@ public class SunRenderer extends EntityRenderer<SunEntity, SunRenderState> {
 
 	@Override
 	public void submit(SunRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-		collector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutNoCull(TEXTURE), SunMesh::render);
+		collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), SunMesh::render);
 		super.submit(state, poseStack, collector, camera);
 	}
 }

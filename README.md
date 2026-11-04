@@ -26,3 +26,8 @@ Coloque em `.minecraft/mods/` junto com o **Fabric API 0.141.6+1.21.11** (ou mai
 ## Arquivos de origem
 * `sun_vanilla.bbmodel` → `src/client/resources/assets/sunmod/models/sun_vanilla.mesh` (3 esferas, escala x8)
 * `ice_cube.bbmodel` → `assets/sunmod/models/item/ice_cube.json` (2 cubos)
+
+## Outline (contorno)
+Os modelos `*_1.bbmodel` (pasta `source_models/`) usam *casco invertido*: as camadas "outline" têm as faces viradas para dentro.
+* Sol: `SunRenderer` usa `RenderTypes.entityCutout` (com culling) para só aparecer a borda das esferas externas.
+* Ice Cube: o 2º elemento de `models/item/ice_cube.json` é um cubo invertido (`from` > `to`) 0,25px maior.

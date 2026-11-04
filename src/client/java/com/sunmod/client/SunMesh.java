@@ -72,7 +72,8 @@ final class SunMesh {
 		for (int f = 0; f < faceCount; f++) {
 			for (int v = 0; v < 4; v++) {
 				p.set(data[idx], data[idx + 1], data[idx + 2], 1.0F).mul(matrix);
-				n.set(data[idx + 5], data[idx + 6], data[idx + 7]);
+				// Normal fixa para cima = sem sombreamento: as cores da textura (núcleo/contorno) ficam puras.
+				n.set(0.0F, 1.0F, 0.0F);
 				pose.transformNormal(n, n);
 				consumer.addVertex(p.x(), p.y(), p.z(), 0xFFFFFFFF, data[idx + 3], data[idx + 4],
 						overlay, light, n.x(), n.y(), n.z());
