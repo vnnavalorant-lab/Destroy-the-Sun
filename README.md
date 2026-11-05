@@ -19,8 +19,8 @@ Coloque em `.minecraft/mods/` junto com o **Fabric API 0.141.6+1.21.11** (ou mai
 ## Ajustes rápidos
 | O quê | Onde |
 |---|---|
-| Vida do Sol (padrão 1000 = 10x a original) | `SunEntity.MAX_HEALTH` |
-| Dano por Ice Cube (padrão 5 → 200 acertos) | `IceCubeProjectile.DAMAGE` |
+| Vida do Sol (padrão 10000 = 100x a original) | `SunEntity.MAX_HEALTH` |
+| Dano por Ice Cube (padrão 5 → 2000 acertos) | `IceCubeProjectile.DAMAGE` |
 | Tamanho do Sol | `ModEntities.SUN` (`.sized(50, 50)`) (a malha já foi convertida para 50 blocos no `.mesh`) |
 
 ## Barreira do Sol (orbe holográfico)
@@ -61,7 +61,7 @@ Os modelos vêm de `source_models/*.bbmodel` convertidos por `tools_convert_weap
 |---|---|---|---|
 | Ice Cube (arremesso) | 5 | $3 | segurar para carregar e soltar |
 | **Gun Ice** | 10 (2x) | $6 (2x) | **sem carregar**, 4 tiros/s enquanto o botão direito estiver apertado (projétil de gelo rápido) |
-| **Lazer Ice** | 20 (4x) | $12 (4x) | **sem carregar**, raio instantâneo, 5 pulsos/s enquanto o botão direito estiver apertado |
+| **Lazer Ice** | 20 (4x) | $12 (4x) | **sem carregar**, raio ciano instantâneo (partículas densas + impacto), 5 pulsos/s enquanto o botão direito estiver apertado |
 | **Gravity Gun** | — | — | só existe como item por enquanto, não faz nada |
 
 * **Munição:** Gun Ice e Lazer Ice gastam **1 Ice Cube por disparo** (`AutoFireItem.AMMO_PER_SHOT`; coloque 0 para munição infinita). No criativo não gasta.

@@ -28,8 +28,8 @@ import java.util.WeakHashMap;
  * e cada dano faz nascer uma {@link MoneyCoinEntity} para o jogador que acertou.
  */
 public class SunEntity extends Entity {
-	/** Vida total do Sol (10x a original: eram 100). Cada Ice Cube causa {@link IceCubeProjectile#DAMAGE}. */
-	public static final float MAX_HEALTH = 1000.0F;
+	/** Vida total do Sol (100x a original: eram 100). Cada Ice Cube causa {@link IceCubeProjectile#DAMAGE}. */
+	public static final float MAX_HEALTH = 10000.0F;
 
 	/** Temperatura (°C) mostrada na HUD com a vida cheia; cai junto com a vida. */
 	public static final int MAX_TEMPERATURE = 144982;
