@@ -90,11 +90,31 @@ Os modelos vêm de `source_models/*.bbmodel` convertidos por `tools_convert_weap
 ## GUI "Melhorias" (Upgrader)
 Botão direito no Upgrader abre a tela com 3 colunas (Estatísticas / Armas / Habilidades). Cada coluna rola sozinha
 (roda do mouse ou arrastando a barra fina). Clicar em um card **compra o próximo nível** com o dinheiro das Money Coins;
-preço branco = dá para pagar, vermelho = falta dinheiro. Armas/habilidades ainda não compradas aparecem como silhueta preta.
-* Lógica: `Upgrades` (lista, preços, níveis, compra validada no servidor) + anexo `ModAttachments.UPGRADES` (salvo no jogador,
-  mantido ao morrer, sincronizado só com ele). Rede: `OpenUpgraderPayload` (servidor→cliente) e `BuyUpgradePayload` (cliente→servidor).
-* Tela: `client/UpgraderScreen` (painel virtual 400x236 escalado para a janela).
-* Preços: `Upgrades.ALL` (`preço = âncora * crescimento^(nível - nívelDaÂncora)`); as âncoras são os valores vistos no vídeo.
-* Visual: `python tools_gen_upgrader_gui.py` (fundos/cores) e `python tools_gen_upgrade_icons.py` (ícones + silhuetas).
-* **Efeitos ainda não ligados**: comprar só sobe o nível. Use `Upgrades.getLevel(player, "attack_speed")` etc. nos itens
-  para aplicar cada efeito (ex.: `GunIceItem.FIRE_INTERVAL_TICKS`, `IceCubeItem.MAX_IN_INVENTORY`).
+preço branco = dá para pagar, vermelho = falta dinheiro. Armas/habilidades ainda não compradas aparecem escurecidas.
+* **Ícones = itens do Minecraft** (`Upgrades.ALL`, campo `icon`): Relógio, Gelo Azul, Mochila (Bundle), Botas de Diamante,
+  Gelo, Besta, Sinalizador, Bola de Fogo, Açúcar, Pérola do Ender e Alvo. São desenhados por `g.renderItem` (renderizador de itens do jogo).
+* **Descrições com contorno preto fino** (`UpgraderScreen.OUTLINE_DESC`) e com os números reais do jogo: o lang usa `%s`
+  e `Upgrades.descriptionArgs` preenche com as constantes, então texto e jogo nunca divergem.
+* Lógica: `Upgrades` (lista, preços, níveis, compra validada no servidor) + anexo `ModAttachments.UPGRADES`. Rede:
+  `OpenUpgraderPayload` (servidor→cliente), `BuyUpgradePayload` e `UseAbilityPayload` (cliente→servidor).
+* Tela: `client/UpgraderScreen` (painel virtual 400x236 escalado para a janela). Preços: `Upgrades.ALL`.
+
+### O que cada melhoria faz no jogo
+| Melhoria | Efeito | Onde / constantes |
+|---|---|---|
+| Velocidade de Ataque (15) | +8% de cadência por nível na Gun Ice / Lazer Ice e carga do Ice Cube mais rápida | `Upgrades.ATTACK_SPEED_PER_LEVEL`, `AutoFireItem` |
+| Poder de Resfriamento (15) | +10% de dano no Sol por nível (todas as armas e o cometa) | `Upgrades.COOLING_PER_LEVEL` |
+| Capacidade da Mochila (12) | +8 Ice Cubes no limite por nível (64 → 160); vale na Machine Ice, na HUD e na Recarga | `Upgrades.BACKPACK_PER_LEVEL`, `IceCubeItem.maxFor` |
+| Velocidade de Movimento (10) | +4% de velocidade por nível (modificador de atributo) | `Upgrades.MOVE_SPEED_PER_LEVEL`, `Abilities.tickPlayer` |
+| Cubo de Gelo / Canhão de Gelo | já começam liberados (Ice Cube e Gun Ice) | `AutoFireItem.upgradeId()` |
+| Raio Criogênico ($16.500) | libera o **Lazer Ice** (sem comprar: "Compre ... no Upgrader") | `LazerIceItem` |
+| Capturador de Cometas ($38.000) | libera a **Gravity Gun**: clique num cometa (na mira ou o mais perto) e ele é lançado no Sol (250 de dano, $60) | `GravityGunItem`, `CometEntity` |
+| Surto de Adrenalina (4) | tecla **Z**: +30% de movimento e +50% de ataque por 4+2×nível s; recarga 45 s | `Abilities` |
+| Recarga Instantânea (3) | tecla **X**: enche o inventário de gelo até a capacidade; recarga 150−30×nível s | `Abilities` |
+| Ofensiva Crítica (4) | tecla **C**: 3+nível pontos super fracos (partículas) no Sol por 20 s; acertar neles = 3× de dano; recarga 60 s | `Abilities`, `SunEntity.activateWeakPoints` |
+
+* No **criativo** as armas/habilidades funcionam sem comprar (para testar). No survival, só depois de comprar.
+* **Cometas** (`CometEntity`): nascem sozinhos em volta do Sol (até 3, só com jogador a menos de 200 blocos), orbitam devagar e somem em
+  90 s. Não machucam nada. Ajustes: `SunEntity.MAX_COMETS`, `COMET_CHANCE_PER_SECOND`, `CometEntity.DAMAGE/COIN_VALUE`.
+* **Teclas** das habilidades: Controles > Jogabilidade (`key.sunmod.*`); Z/X/C são os padrões que as descrições citam.
+* Avisos de habilidade (ativada, em recarga, sem Sol) aparecem na barra de ação.
