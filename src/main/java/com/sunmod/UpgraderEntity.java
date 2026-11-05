@@ -1,12 +1,14 @@
 package com.sunmod;
 
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 
-/** Upgrader: por enquanto só decorativo (não faz nada ao clicar). Um soco remove e devolve o item. */
+/** Upgrader: botão direito abre a GUI "Melhorias" (comprar melhorias com o dinheiro). Um soco remove e devolve o item. */
 public class UpgraderEntity extends StationEntity {
 	private static final DetailedHitbox HITBOX = DetailedHitbox.load("upgrader");
 
@@ -26,11 +28,13 @@ public class UpgraderEntity extends StationEntity {
 
 	@Override
 	public boolean isUsable() {
-		return false;
+		return true;
 	}
 
 	@Override
 	public void onUse(Player player, ServerLevel level) {
-		// Sem função (ainda).
+		if (player instanceof ServerPlayer serverPlayer) {
+			ServerPlayNetworking.send(serverPlayer, new OpenUpgraderPayload());
+		}
 	}
 }

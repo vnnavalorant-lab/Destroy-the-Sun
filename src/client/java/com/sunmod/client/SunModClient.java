@@ -1,8 +1,10 @@
 package com.sunmod.client;
 
 import com.sunmod.ModEntities;
+import com.sunmod.OpenUpgraderPayload;
 import com.sunmod.SunMod;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
@@ -19,6 +21,10 @@ public class SunModClient implements ClientModInitializer {
 
 		EntityRendererRegistry.register(ModEntities.MONEY_COIN, MoneyCoinRenderer::new);
 		EntityRendererRegistry.register(ModEntities.LASER_BEAM, LaserBeamRenderer::new);
+
+		// GUI "Melhorias": o servidor manda abrir quando o jogador usa o Upgrader
+		ClientPlayNetworking.registerGlobalReceiver(OpenUpgraderPayload.TYPE,
+				(payload, context) -> context.client().setScreen(new UpgraderScreen()));
 
 		// HUDs: Ice (inferior direito), Sun Temperature (superior direito) e Money Coins (inferior esquerdo)
 		HudElementRegistry.addLast(SunMod.id("ice_hud"), new IceHud());

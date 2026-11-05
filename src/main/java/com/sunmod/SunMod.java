@@ -1,6 +1,8 @@
 package com.sunmod;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.resources.Identifier;
@@ -21,6 +23,12 @@ public class SunMod implements ModInitializer {
 		ModAttachments.register();
 		ModEntities.register();
 		ModItems.register();
+
+		// Rede da GUI "Melhorias": servidor abre a tela; cliente pede a compra (o servidor valida tudo).
+		PayloadTypeRegistry.playS2C().register(OpenUpgraderPayload.TYPE, OpenUpgraderPayload.CODEC);
+		PayloadTypeRegistry.playC2S().register(BuyUpgradePayload.TYPE, BuyUpgradePayload.CODEC);
+		ServerPlayNetworking.registerGlobalReceiver(BuyUpgradePayload.TYPE,
+				(payload, context) -> Upgrades.tryBuy(context.player(), payload.id()));
 
 		ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(entries -> {
 			entries.accept(ModItems.SUN);
