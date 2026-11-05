@@ -15,6 +15,9 @@ import net.minecraft.world.level.Level;
  * Base das armas de tiro contínuo (Gun Ice e Lazer Ice): sem carregar, dispara de {@link #fireInterval()}
  * em {@link #fireInterval()} ticks enquanto o jogador segurar o botão direito, e para ao soltar.
  * Cada disparo gasta {@link #AMMO_PER_SHOT} Ice Cube(s) do inventário (no criativo não gasta).
+ *
+ * <p>A cadência real é {@code 1 / fireInterval()} vezes {@link Upgrades#attackSpeedMultiplier} (melhoria Velocidade
+ * de Ataque e Surto de Adrenalina), e a arma só funciona se a melhoria dela estiver comprada ({@link #upgradeId()}).
  */
 public abstract class AutoFireItem extends Item {
 	/** Ice Cubes gastos por disparo. Coloque 0 para munição infinita. */
@@ -29,6 +32,9 @@ public abstract class AutoFireItem extends Item {
 	/** Ticks entre dois disparos. */
 	protected abstract int fireInterval();
 
+	/** Id da melhoria que libera esta arma (ver {@link Upgrades}). */
+	protected abstract String upgradeId();
+
 	/** Faz um disparo (só roda no servidor, com munição já descontada). */
 	protected abstract void fire(ServerLevel level, Player player, ItemStack weapon);
 
@@ -38,6 +44,13 @@ public abstract class AutoFireItem extends Item {
 
 	@Override
 	public InteractionResult use(Level level, Player player, InteractionHand hand) {
+		if (!Upgrades.isUnlocked(player, this.upgradeId())) {
+			if (!level.isClientSide()) {
+				player.displayClientMessage(Component.translatable("message.sunmod.upgrade_locked",
+						Upgrades.byId(this.upgradeId()).name()), true);
+			}
+			return InteractionResult.FAIL;
+		}
 		if (AMMO_PER_SHOT > 0 && !IceCubeItem.hasAny(player)) {
 			player.displayClientMessage(Component.translatable("message.sunmod.no_ammo"), true);
 			return InteractionResult.FAIL;
@@ -63,7 +76,10 @@ public abstract class AutoFireItem extends Item {
 		}
 		this.holdTick(serverLevel, player, stack);
 		int elapsed = USE_DURATION - remainingUseTicks;
-		if (elapsed % this.fireInterval() != 0) {
+		// Cadência com bônus: dispara quando a contagem (ticks * disparos por tick) passa para o próximo inteiro.
+		double perTick = Upgrades.attackSpeedMultiplier(player) / this.fireInterval();
+		boolean shootNow = elapsed == 0 || Math.floor(elapsed * perTick) > Math.floor((elapsed - 1) * perTick);
+		if (!shootNow) {
 			return;
 		}
 		if (AMMO_PER_SHOT > 0) {

@@ -3,6 +3,7 @@ package com.sunmod;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.resources.Identifier;
@@ -29,6 +30,16 @@ public class SunMod implements ModInitializer {
 		PayloadTypeRegistry.playC2S().register(BuyUpgradePayload.TYPE, BuyUpgradePayload.CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(BuyUpgradePayload.TYPE,
 				(payload, context) -> Upgrades.tryBuy(context.player(), payload.id()));
+
+		// Habilidades (teclas Z/X/C no cliente) e bônus de velocidade de movimento.
+		PayloadTypeRegistry.playC2S().register(UseAbilityPayload.TYPE, UseAbilityPayload.CODEC);
+		ServerPlayNetworking.registerGlobalReceiver(UseAbilityPayload.TYPE,
+				(payload, context) -> Abilities.activate(context.player(), payload.id()));
+		ServerTickEvents.END_SERVER_TICK.register(server -> {
+			for (var player : server.getPlayerList().getPlayers()) {
+				Abilities.tickPlayer(player);
+			}
+		});
 
 		ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(entries -> {
 			entries.accept(ModItems.SUN);

@@ -27,9 +27,14 @@ public class GunIceItem extends AutoFireItem {
 	}
 
 	@Override
+	protected String upgradeId() {
+		return "ice_cannon";
+	}
+
+	@Override
 	protected void fire(ServerLevel level, Player player, ItemStack weapon) {
 		IceCubeProjectile bullet = new IceCubeProjectile(level, player, new ItemStack(ModItems.ICE_CUBE))
-				.asBullet(DAMAGE, COIN_VALUE, BULLET_LIFE_TICKS);
+				.asBullet(DAMAGE * Upgrades.coolingMultiplier(player), COIN_VALUE, BULLET_LIFE_TICKS);
 		bullet.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, BULLET_SPEED, 0.0F);
 		level.addFreshEntity(bullet);
 		level.playSound(null, player.getX(), player.getY(), player.getZ(),

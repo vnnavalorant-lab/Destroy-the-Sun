@@ -18,6 +18,8 @@ public final class ModEntities {
 			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("upgrader"));
 	private static final ResourceKey<EntityType<?>> LASER_BEAM_KEY =
 			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("laser_beam"));
+	private static final ResourceKey<EntityType<?>> COMET_KEY =
+			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("comet"));
 	private static final ResourceKey<EntityType<?>> MONEY_COIN_KEY =
 			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("money_coin"));
 
@@ -81,6 +83,17 @@ public final class ModEntities {
 					.clientTrackingRange(32)
 					.updateInterval(1)
 					.build(LASER_BEAM_KEY));
+
+	/** Cometa que orbita o Sol e pode ser lançado nele com a Gravity Gun. */
+	public static final EntityType<CometEntity> COMET = Registry.register(
+			BuiltInRegistries.ENTITY_TYPE, COMET_KEY,
+			EntityType.Builder.<CometEntity>of(CometEntity::new, MobCategory.MISC)
+					.sized(1.0F, 1.0F)
+					.noSave()
+					.fireImmune()
+					.clientTrackingRange(16)
+					.updateInterval(1)
+					.build(COMET_KEY));
 
 	public static void register() {
 		// Só carrega a classe (os campos estáticos acima fazem o registro).

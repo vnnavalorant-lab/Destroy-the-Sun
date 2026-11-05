@@ -6,8 +6,10 @@ import com.sunmod.SunMod;
 import com.sunmod.Upgrades;
 import com.sunmod.Upgrades.Category;
 import com.sunmod.Upgrades.Upgrade;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -23,6 +25,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * GUI "Melhorias" do Upgrader (aberta com o botão direito na máquina).
@@ -33,7 +36,8 @@ import net.minecraft.util.Mth;
  *
  * <p>Tudo é desenhado num painel "virtual" de {@code VW x VH} unidades e escalado para caber na janela, então o
  * visual é igual em qualquer GUI scale. Para mudar cores/medidas mexa nas constantes abaixo; as texturas de fundo vêm de
- * {@code tools_gen_upgrader_gui.py} e os ícones de {@code tools_gen_upgrade_icons.py}.
+ * {@code tools_gen_upgrader_gui.py}. Os ícones das melhorias são itens do Minecraft ({@link Upgrade#icon()}), desenhados
+ * com o renderizador de itens do jogo; as descrições têm um contorno preto fino para ler bem sobre qualquer fundo.
  */
 public class UpgraderScreen extends Screen {
 	// ---- Medidas do painel virtual ----
@@ -63,11 +67,16 @@ public class UpgraderScreen extends Screen {
 			SunMod.id("textures/gui/upgrader/card_weapons.png"),
 			SunMod.id("textures/gui/upgrader/card_abilities.png")};
 
+	/** Espessura (em unidades do texto) do contorno: título = 1 (grosso), descrição = fino. */
+	private static final float OUTLINE_TITLE = 1.0F, OUTLINE_DESC = 0.6F;
+
 	private static final int[][] OUTLINE = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {-1, -1}, {1, -1}, {-1, 1}};
 	private static final Category[] CATEGORIES = Category.values();
 
 	private final List<List<Upgrade>> columns = List.of(
 			Upgrades.of(Category.STATS), Upgrades.of(Category.WEAPONS), Upgrades.of(Category.ABILITIES));
+	/** Um ItemStack por melhoria, criado uma vez só (o ícone é o item do Minecraft da melhoria). */
+	private final Map<String, ItemStack> icons = new HashMap<>();
 	private final float[] scroll = new float[3];
 	private final float[] scrollTarget = new float[3];
 
@@ -215,9 +224,18 @@ public class UpgraderScreen extends Screen {
 			}
 		}
 
-		// ícone (silhueta preta enquanto não comprado, como no vídeo)
-		Identifier icon = SunMod.id("textures/gui/upgrades/" + up.id() + (locked ? "_dark" : "") + ".png");
-		blitTexture(g, icon, 5, 12, 128, 128, 36.0F / 128.0F);
+		// ícone: item do Minecraft num quadro escuro (escurecido enquanto a arma/habilidade não foi comprada)
+		g.fill(4, 11, 42, 49, COLOR_BORDER);
+		g.fill(5, 12, 41, 48, 0xFF2A3040);
+		ItemStack iconStack = this.icons.computeIfAbsent(up.id(), id -> new ItemStack(up.icon()));
+		g.pose().pushMatrix();
+		g.pose().translate(5.0F, 12.0F);
+		g.pose().scale(36.0F / 16.0F); // o item tem 16x16; o quadro tem 36x36
+		g.renderItem(iconStack, 0, 0);
+		g.pose().popMatrix();
+		if (locked) {
+			g.fill(5, 12, 41, 48, 0xB4000000);
+		}
 
 		// ▼ no canto superior direito
 		for (int i = 0; i < 5; i++) {
@@ -237,12 +255,14 @@ public class UpgraderScreen extends Screen {
 			this.drawText(g, titleLines.get(i), 43, 12 + i * 9.0F, titleScale, COLOR_WHITE, true);
 		}
 
-		// descrição pequena
+		// descrição pequena, com contorno fino; usa todas as linhas que cabem no card
 		float descScale = 0.55F;
+		float lineH = 6.2F;
 		List<FormattedCharSequence> descLines = this.font.split(up.description(), (int) (71 / descScale));
 		float descY = 12 + shown * 9.0F + 3;
-		for (int i = 0; i < Math.min(3, descLines.size()); i++) {
-			this.drawText(g, descLines.get(i), 43, descY + i * 6.2F, descScale, COLOR_WHITE, false);
+		int maxDescLines = Math.max(1, (int) ((CARD_H - 4 - descY) / lineH));
+		for (int i = 0; i < Math.min(maxDescLines, descLines.size()); i++) {
+			this.drawText(g, descLines.get(i), 43, descY + i * lineH, descScale, COLOR_WHITE, OUTLINE_DESC);
 		}
 
 		// preço no canto inferior esquerdo (vermelho se não tem dinheiro; some quando já está no nível máximo)
@@ -277,16 +297,27 @@ public class UpgraderScreen extends Screen {
 
 	/** Texto na fonte do Minecraft, com escala livre e (opcional) contorno preto grosso. (x,y) = canto superior esquerdo. */
 	private void drawText(GuiGraphics g, FormattedCharSequence text, float x, float y, float s, int color, boolean outline) {
+		this.drawText(g, text, x, y, s, color, outline ? OUTLINE_TITLE : 0.0F);
+	}
+
+	/**
+	 * Igual ao de cima, mas com a espessura do contorno livre ({@code outline} em unidades do texto; 0 = sem contorno,
+	 * só sombra). O contorno é o texto preto repetido nas 8 direções, deslocado por essa espessura.
+	 */
+	private void drawText(GuiGraphics g, FormattedCharSequence text, float x, float y, float s, int color, float outline) {
 		Font f = this.font;
 		g.pose().pushMatrix();
 		g.pose().translate(x, y);
 		g.pose().scale(s);
-		if (outline) {
+		if (outline > 0.0F) {
 			for (int[] o : OUTLINE) {
-				g.drawString(f, text, o[0], o[1], 0xFF000000, false);
+				g.pose().pushMatrix();
+				g.pose().translate(o[0] * outline, o[1] * outline);
+				g.drawString(f, text, 0, 0, 0xFF000000, false);
+				g.pose().popMatrix();
 			}
 		}
-		g.drawString(f, text, 0, 0, color, !outline);
+		g.drawString(f, text, 0, 0, color, outline <= 0.0F);
 		g.pose().popMatrix();
 	}
 

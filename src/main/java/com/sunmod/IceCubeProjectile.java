@@ -41,6 +41,11 @@ public class IceCubeProjectile extends ThrowableItemProjectile {
 		return this.coinValue;
 	}
 
+	/** Multiplica o dano deste projétil (bônus de Poder de Resfriamento). */
+	public void scaleDamage(float multiplier) {
+		this.damage *= multiplier;
+	}
+
 	/** Configura como tiro de arma: dano, dinheiro por acerto, sem gravidade e com tempo de vida. */
 	public IceCubeProjectile asBullet(float damage, int coinValue, int maxLife) {
 		this.damage = damage;
@@ -58,7 +63,7 @@ public class IceCubeProjectile extends ThrowableItemProjectile {
 	/** Máquinas não são alvo do projétil: ele passa por elas. */
 	@Override
 	protected boolean canHitEntity(Entity target) {
-		return !(target instanceof StationEntity) && super.canHitEntity(target);
+		return !(target instanceof StationEntity) && !(target instanceof CometEntity) && super.canHitEntity(target);
 	}
 
 	@Override

@@ -39,9 +39,9 @@ public final class ModItems {
 	public static final Item LAZER_ICE = Registry.register(BuiltInRegistries.ITEM, LAZER_ICE_KEY,
 			new LazerIceItem(new Item.Properties().setId(LAZER_ICE_KEY).stacksTo(1)));
 
-	/** Só existe no jogo por enquanto: não faz nada. */
+	/** Capturador de Cometas: captura um cometa e o lança no Sol (precisa da melhoria comprada). */
 	public static final Item GRAVITY_GUN = Registry.register(BuiltInRegistries.ITEM, GRAVITY_GUN_KEY,
-			new Item(new Item.Properties().setId(GRAVITY_GUN_KEY).stacksTo(1)));
+			new GravityGunItem(new Item.Properties().setId(GRAVITY_GUN_KEY).stacksTo(1)));
 
 	public static void register() {
 		// Só carrega a classe.

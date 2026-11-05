@@ -16,6 +16,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
+import net.minecraft.world.entity.player.Player;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -60,6 +61,22 @@ public class SunEntity extends Entity {
 	 */
 	private static final EntityDataAccessor<Long> DATA_SHIELD_END =
 			SynchedEntityData.defineId(SunEntity.class, EntityDataSerializers.LONG);
+
+	/** Máximo de cometas orbitando ao mesmo tempo e raio (blocos) em que eles aparecem em volta do centro do Sol. */
+	public static final int MAX_COMETS = 3;
+	public static final double COMET_ORBIT_MIN = RADIUS + 14.0;
+	public static final double COMET_ORBIT_MAX = RADIUS + 30.0;
+	/** Só nascem cometas se houver um jogador a até esta distância do Sol. */
+	private static final double COMET_PLAYER_RANGE = 200.0;
+	/** Chance por segundo de nascer um cometa (quando há menos que o máximo): ~1 a cada 12 s. */
+	private static final double COMET_CHANCE_PER_SECOND = 1.0 / 12.0;
+	/** Raio (blocos) de um ponto super fraco da Ofensiva Crítica. */
+	public static final double WEAK_POINT_RADIUS = 4.0;
+
+	/** Pontos super fracos ativos na superfície do Sol (Ofensiva Crítica). Só no servidor, não é salvo. */
+	private final List<Vec3> weakPoints = new ArrayList<>();
+	private long weakPointsUntil = 0L;
+	private float weakPointMultiplier = 1.0F;
 
 	/** Tick de jogo da próxima ativação da barreira (só no servidor; salvo no mundo). */
 	private long nextShieldAt = 0L;
@@ -158,7 +175,84 @@ public class SunEntity extends Entity {
 
 		if (this.level() instanceof ServerLevel level) {
 			this.tickShield(level);
+			this.tickWeakPoints(level);
+			this.tickComets(level);
 		}
+	}
+
+	/** Ofensiva Crítica: cria {@code count} pontos super fracos em lugares aleatórios da superfície do Sol. */
+	public void activateWeakPoints(ServerLevel level, int count, int durationTicks, float multiplier) {
+		this.weakPoints.clear();
+		Vec3 center = this.position().add(0.0, RADIUS, 0.0);
+		for (int i = 0; i < count; i++) {
+			double y = level.getRandom().nextDouble() * 2.0 - 1.0;
+			double angle = level.getRandom().nextDouble() * Math.PI * 2.0;
+			double ring = Math.sqrt(1.0 - y * y);
+			this.weakPoints.add(center.add(Math.cos(angle) * ring * RADIUS, y * RADIUS, Math.sin(angle) * ring * RADIUS));
+		}
+		this.weakPointsUntil = level.getGameTime() + durationTicks;
+		this.weakPointMultiplier = multiplier;
+	}
+
+	/** O ponto {@code surface} (superfície do Sol) está dentro de algum ponto super fraco ativo? */
+	private boolean isWeakPointHit(ServerLevel level, Vec3 surface) {
+		if (this.weakPoints.isEmpty() || level.getGameTime() >= this.weakPointsUntil) {
+			return false;
+		}
+		for (Vec3 p : this.weakPoints) {
+			if (p.distanceToSqr(surface) <= WEAK_POINT_RADIUS * WEAK_POINT_RADIUS) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** Desenha os pontos super fracos com partículas e os apaga quando o tempo acaba. */
+	private void tickWeakPoints(ServerLevel level) {
+		if (this.weakPoints.isEmpty()) {
+			return;
+		}
+		if (level.getGameTime() >= this.weakPointsUntil) {
+			this.weakPoints.clear();
+			return;
+		}
+		if (level.getGameTime() % 4L != 0L) {
+			return;
+		}
+		for (Vec3 p : this.weakPoints) {
+			level.sendParticles(ParticleTypes.FLAME, p.x, p.y, p.z, 8, 1.4, 1.4, 1.4, 0.01);
+			level.sendParticles(ParticleTypes.END_ROD, p.x, p.y, p.z, 2, 0.8, 0.8, 0.8, 0.02);
+		}
+	}
+
+	/** Faz nascer cometas em órbita (até {@link #MAX_COMETS}) enquanto houver jogador por perto. */
+	private void tickComets(ServerLevel level) {
+		if (level.getGameTime() % 20L != 0L || level.getRandom().nextDouble() > COMET_CHANCE_PER_SECOND) {
+			return;
+		}
+		Vec3 center = this.position().add(0.0, RADIUS, 0.0);
+		boolean playerNear = false;
+		for (Player p : level.players()) {
+			if (!p.isSpectator() && p.position().distanceToSqr(center) < COMET_PLAYER_RANGE * COMET_PLAYER_RANGE) {
+				playerNear = true;
+				break;
+			}
+		}
+		if (!playerNear) {
+			return;
+		}
+		int comets = level.getEntitiesOfClass(CometEntity.class, this.getBoundingBox().inflate(COMET_ORBIT_MAX)).size();
+		if (comets >= MAX_COMETS) {
+			return;
+		}
+		double y = (level.getRandom().nextDouble() * 2.0 - 1.0) * 0.6; // evita os polos
+		double angle = level.getRandom().nextDouble() * Math.PI * 2.0;
+		double ring = Math.sqrt(1.0 - y * y);
+		double dist = COMET_ORBIT_MIN + level.getRandom().nextDouble() * (COMET_ORBIT_MAX - COMET_ORBIT_MIN);
+		CometEntity comet = new CometEntity(ModEntities.COMET, level);
+		comet.setPos(center.x + Math.cos(angle) * ring * dist, center.y + y * dist - 0.5, center.z + Math.sin(angle) * ring * dist);
+		comet.orbit(this);
+		level.addFreshEntity(comet);
 	}
 
 	/** Ciclo da barreira: liga a cada {@link #SHIELD_INTERVAL_TICKS}, desliga após {@link #SHIELD_DURATION_TICKS}. */
@@ -213,17 +307,24 @@ public class SunEntity extends Entity {
 		if (this.isShielded()) {
 			return false;
 		}
+		// Ofensiva Crítica: acertar um ponto super fraco multiplica o dano.
+		Vec3 surface = this.surfacePoint(hitPos);
+		if (this.isWeakPointHit(level, surface)) {
+			amount *= this.weakPointMultiplier;
+			level.sendParticles(ParticleTypes.CRIT, surface.x, surface.y, surface.z, 25, 1.0, 1.0, 1.0, 0.4);
+			level.playSound(null, surface.x, surface.y, surface.z, SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 1.0F, 1.0F);
+		}
 		float remaining = this.getHealthValue() - amount;
 		this.setHealthValue(Math.max(0.0F, remaining));
 
 		// Armas de tiro rápido: menos partículas por acerto (para não pesar com 4-5 acertos por segundo).
-		int particles = amount > IceCubeProjectile.DAMAGE ? 40 : 150;
+		int particles = amount > IceCubeProjectile.DAMAGE * 1.5F ? 40 : 150;
 		level.sendParticles(ParticleTypes.SNOWFLAKE, this.getX(), this.getY() + RADIUS, this.getZ(),
 				particles, 15.0, 15.0, 15.0, 0.05);
 
 		// Dano causado por um jogador: nasce uma moeda na superfície do Sol, no ponto do acerto.
 		if (shooter != null) {
-			MoneyCoinEntity.spawn(level, this.surfacePoint(hitPos), shooter, coinValue);
+			MoneyCoinEntity.spawn(level, surface, shooter, coinValue);
 		}
 
 		if (remaining <= 0.0F) {

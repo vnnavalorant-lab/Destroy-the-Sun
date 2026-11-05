@@ -20,6 +20,11 @@ public class IceCubeItem extends Item {
 	/** Máximo de Ice Cubes que o jogador pode ter no inventário (o Machine Ice não entrega acima disso). */
 	public static final int MAX_IN_INVENTORY = 64;
 
+	/** Capacidade da mochila deste jogador: base + bônus da melhoria Capacidade da Mochila. */
+	public static int maxFor(Player player) {
+		return MAX_IN_INVENTORY + Upgrades.BACKPACK_PER_LEVEL * Upgrades.getLevel(player, "backpack_capacity");
+	}
+
 	public IceCubeItem(Properties properties) {
 		super(properties);
 	}
@@ -66,7 +71,8 @@ public class IceCubeItem extends Item {
 		if (!(user instanceof Player player)) {
 			return false;
 		}
-		int chargeTicks = this.getUseDuration(stack, user) - remainingUseTicks;
+		// Velocidade de Ataque também deixa a carga do arremesso mais rápida.
+		int chargeTicks = (int) ((this.getUseDuration(stack, user) - remainingUseTicks) * Upgrades.attackSpeedMultiplier(player));
 		float power = BowItem.getPowerForTime(chargeTicks); // 0.0 .. 1.0, igual ao arco
 		if (power < 0.1F) {
 			return false;
@@ -74,6 +80,7 @@ public class IceCubeItem extends Item {
 
 		if (level instanceof ServerLevel serverLevel) {
 			IceCubeProjectile projectile = new IceCubeProjectile(level, player, stack.copyWithCount(1));
+			projectile.scaleDamage(Upgrades.coolingMultiplier(player));
 			projectile.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, power * 3.0F, 1.0F);
 			serverLevel.addFreshEntity(projectile);
 		}

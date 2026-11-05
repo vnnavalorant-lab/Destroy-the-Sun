@@ -50,8 +50,9 @@ public class MachineIceEntity extends StationEntity {
 
 	@Override
 	public void onUse(Player player, ServerLevel level) {
-		if (countIceCubes(player) >= IceCubeItem.MAX_IN_INVENTORY) {
-			player.displayClientMessage(Component.translatable("message.sunmod.ice_full", IceCubeItem.MAX_IN_INVENTORY), true);
+		int max = IceCubeItem.maxFor(player);
+		if (countIceCubes(player) >= max) {
+			player.displayClientMessage(Component.translatable("message.sunmod.ice_full", max), true);
 			return;
 		}
 		if (this.cooldown > 0) {

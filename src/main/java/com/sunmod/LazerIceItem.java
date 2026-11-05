@@ -44,6 +44,11 @@ public class LazerIceItem extends AutoFireItem {
 		return FIRE_INTERVAL_TICKS;
 	}
 
+	@Override
+	protected String upgradeId() {
+		return "cryo_beam";
+	}
+
 	/** Segue a mira a cada tick: o raio fica contínuo e suave. */
 	@Override
 	protected void holdTick(ServerLevel level, Player player, ItemStack weapon) {
@@ -81,7 +86,7 @@ public class LazerIceItem extends AutoFireItem {
 				target.onShieldHit(level, trace.hit());
 			} else {
 				ServerPlayer shooter = player instanceof ServerPlayer sp ? sp : null;
-				target.applyWeaponDamage(level, shooter, trace.hit(), DAMAGE, COIN_VALUE);
+				target.applyWeaponDamage(level, shooter, trace.hit(), DAMAGE * Upgrades.coolingMultiplier(player), COIN_VALUE);
 			}
 		}
 	}

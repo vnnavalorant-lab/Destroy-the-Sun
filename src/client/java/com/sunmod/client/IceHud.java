@@ -48,7 +48,7 @@ public class IceHud implements HudElement {
 			return;
 		}
 
-		int max = IceCubeItem.MAX_IN_INVENTORY;
+		int max = IceCubeItem.maxFor(player); // cresce com a melhoria Capacidade da Mochila
 		int count = MachineIceEntity.countIceCubes(player);
 		float ratio = Math.min(1.0F, (float) count / max);
 
