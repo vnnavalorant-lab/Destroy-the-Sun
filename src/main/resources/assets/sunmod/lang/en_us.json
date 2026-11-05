@@ -51,5 +51,6 @@
   "message.sunmod.ability_cooldown": "%s ready in %s s",
   "message.sunmod.ability_active": "%s activated!",
   "message.sunmod.no_sun": "No Sun nearby",
-  "message.sunmod.no_comet": "No comet nearby"
+  "message.sunmod.no_comet": "No comet nearby",
+  "command.sunmod.reset": "Money Coins and upgrades reset."
 }

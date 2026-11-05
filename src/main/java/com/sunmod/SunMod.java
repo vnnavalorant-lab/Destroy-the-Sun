@@ -1,6 +1,11 @@
 package com.sunmod;
 
+import com.mojang.brigadier.Command;
+import java.util.HashMap;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -40,6 +45,18 @@ public class SunMod implements ModInitializer {
 				Abilities.tickPlayer(player);
 			}
 		});
+
+		// /sunmod reset: zera os Money Coins e todas as melhorias de quem digitou (só afeta o próprio jogador).
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
+				dispatcher.register(Commands.literal("sunmod")
+						.then(Commands.literal("reset").executes(ctx -> {
+							var player = ctx.getSource().getPlayerOrException();
+							player.setAttached(ModAttachments.MONEY, 0);
+							player.setAttached(ModAttachments.UPGRADES, new HashMap<String, Integer>());
+							Abilities.resetState(player);
+							ctx.getSource().sendSuccess(() -> Component.translatable("command.sunmod.reset"), false);
+							return Command.SINGLE_SUCCESS;
+						}))));
 
 		ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(entries -> {
 			entries.accept(ModItems.SUN);

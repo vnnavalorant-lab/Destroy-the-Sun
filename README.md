@@ -118,3 +118,4 @@ preço branco = dá para pagar, vermelho = falta dinheiro. Armas/habilidades ain
   90 s. Não machucam nada. Ajustes: `SunEntity.MAX_COMETS`, `COMET_CHANCE_PER_SECOND`, `CometEntity.DAMAGE/COIN_VALUE`.
 * **Teclas** das habilidades: Controles > Jogabilidade (`key.sunmod.*`); Z/X/C são os padrões que as descrições citam.
 * Avisos de habilidade (ativada, em recarga, sem Sol) aparecem na barra de ação.
+* **/sunmod reset**: zera seus Money Coins e todas as melhorias (volta ao início: só Ice Cube e Gun Ice liberados). Só afeta quem digita.

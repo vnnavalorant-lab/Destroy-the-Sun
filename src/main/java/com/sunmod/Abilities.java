@@ -68,6 +68,12 @@ public final class Abilities {
 		return end != null && player.level().getGameTime() < end;
 	}
 
+	/** Limpa recargas e o Surto de Adrenalina do jogador (usado pelo /sunmod reset). */
+	public static void resetState(ServerPlayer player) {
+		ADRENALINE_END.remove(player.getUUID());
+		READY_AT.keySet().removeIf(k -> k.startsWith(player.getUUID() + ":"));
+	}
+
 	/** Chamado todo tick do servidor para cada jogador: mantém o modificador de velocidade de movimento em dia. */
 	public static void tickPlayer(ServerPlayer player) {
 		double bonus = Upgrades.moveSpeedBonus(player) + (isAdrenalineActive(player) ? ADRENALINE_MOVE_BONUS : 0.0);

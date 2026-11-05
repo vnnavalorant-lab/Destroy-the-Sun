@@ -51,5 +51,6 @@
   "message.sunmod.ability_cooldown": "%s disponível em %s s",
   "message.sunmod.ability_active": "%s ativado!",
   "message.sunmod.no_sun": "Nenhum Sol por perto",
-  "message.sunmod.no_comet": "Nenhum cometa por perto"
+  "message.sunmod.no_comet": "Nenhum cometa por perto",
+  "command.sunmod.reset": "Money Coins e melhorias zerados."
 }
