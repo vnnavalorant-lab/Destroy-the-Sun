@@ -47,7 +47,7 @@ Aba **Ferramentas e utilidades** do criativo, ou `/give @s sunmod:machine_ice`, 
 Clique direito em um bloco para colocar (a frente do modelo vira para você). **Soco** remove e devolve o item.
 * **Machine Ice**: botão direito = recebe **1** Ice Cube por vez (espera de 1 s entre usos), até o limite de **64** Ice Cubes
   no inventário. `MachineIceEntity.ICE_PER_USE` / `COOLDOWN_TICKS` e `IceCubeItem.MAX_IN_INVENTORY`.
-* **Upgrader**: só decorativo por enquanto (o botão direito não faz nada).
+* **Upgrader**: botão direito abre a GUI **Melhorias** (ver seção abaixo).
 
 ## UI Ice (HUD)
 Canto inferior direito: ícone do Ice Cube + barra com "tenho/limite". A barra azul enche conforme os Ice Cubes no inventário
@@ -86,3 +86,15 @@ Os modelos vêm de `source_models/*.bbmodel` convertidos por `tools_convert_weap
 * **Ícones HD** dos itens (Ice Cube, Sun, Machine Ice, Upgrader): `textures/item/*_icon.png` (256x256). O Ice Cube usa o ícone HD só
   no inventário; na mão, no chão e voando continua o modelo 3D.
 * O Upgrader usa a textura nova (`upgrader_1.png`).
+
+## GUI "Melhorias" (Upgrader)
+Botão direito no Upgrader abre a tela com 3 colunas (Estatísticas / Armas / Habilidades). Cada coluna rola sozinha
+(roda do mouse ou arrastando a barra fina). Clicar em um card **compra o próximo nível** com o dinheiro das Money Coins;
+preço branco = dá para pagar, vermelho = falta dinheiro. Armas/habilidades ainda não compradas aparecem como silhueta preta.
+* Lógica: `Upgrades` (lista, preços, níveis, compra validada no servidor) + anexo `ModAttachments.UPGRADES` (salvo no jogador,
+  mantido ao morrer, sincronizado só com ele). Rede: `OpenUpgraderPayload` (servidor→cliente) e `BuyUpgradePayload` (cliente→servidor).
+* Tela: `client/UpgraderScreen` (painel virtual 400x236 escalado para a janela).
+* Preços: `Upgrades.ALL` (`preço = âncora * crescimento^(nível - nívelDaÂncora)`); as âncoras são os valores vistos no vídeo.
+* Visual: `python tools_gen_upgrader_gui.py` (fundos/cores) e `python tools_gen_upgrade_icons.py` (ícones + silhuetas).
+* **Efeitos ainda não ligados**: comprar só sobe o nível. Use `Upgrades.getLevel(player, "attack_speed")` etc. nos itens
+  para aplicar cada efeito (ex.: `GunIceItem.FIRE_INTERVAL_TICKS`, `IceCubeItem.MAX_IN_INVENTORY`).
