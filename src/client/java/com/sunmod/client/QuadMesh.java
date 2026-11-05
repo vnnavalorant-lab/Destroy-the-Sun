@@ -20,6 +20,7 @@ final class QuadMesh {
 	static final QuadMesh SUN = new QuadMesh("sun_vanilla");
 	static final QuadMesh MACHINE_ICE = new QuadMesh("machine_ice");
 	static final QuadMesh UPGRADER = new QuadMesh("upgrader");
+	static final QuadMesh MONEY_COIN = new QuadMesh("money_coin");
 
 	private static final int FLOATS_PER_VERTEX = 8;
 

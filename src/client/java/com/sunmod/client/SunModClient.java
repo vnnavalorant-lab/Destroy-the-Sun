@@ -17,7 +17,11 @@ public class SunModClient implements ClientModInitializer {
 		EntityRendererRegistry.register(ModEntities.UPGRADER, context ->
 				new StationRenderer<>(context, QuadMesh.UPGRADER, SunMod.id("textures/entity/upgrader.png")));
 
-		// UI Ice (contador de Ice Cubes no canto inferior direito)
+		EntityRendererRegistry.register(ModEntities.MONEY_COIN, MoneyCoinRenderer::new);
+
+		// HUDs: Ice (inferior direito), Sun Temperature (superior direito) e Money Coins (inferior esquerdo)
 		HudElementRegistry.addLast(SunMod.id("ice_hud"), new IceHud());
+		HudElementRegistry.addLast(SunMod.id("sun_temperature_hud"), new SunTemperatureHud());
+		HudElementRegistry.addLast(SunMod.id("money_hud"), new MoneyHud());
 	}
 }

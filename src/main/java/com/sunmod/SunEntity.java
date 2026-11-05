@@ -1,30 +1,37 @@
 package com.sunmod;
 
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
-import net.minecraft.world.level.storage.ValueOutput;
 
 /**
  * O Sol: 50x50x50 blocos, fica parado no ar (sem gravidade, nunca se move) e
- * só recebe dano de um {@link IceCubeProjectile}.
+ * só recebe dano de um {@link IceCubeProjectile}. A vida é a "temperatura" mostrada na HUD
+ * e cada dano faz nascer uma {@link MoneyCoinEntity} para o jogador que acertou.
  */
 public class SunEntity extends Entity {
 	/** Vida total do Sol. Cada Ice Cube causa {@link IceCubeProjectile#DAMAGE}. */
 	public static final float MAX_HEALTH = 100.0F;
+
+	/** Temperatura (°C) mostrada na HUD com a vida cheia; cai junto com a vida. */
+	public static final int MAX_TEMPERATURE = 144982;
 
 	/**
 	 * Raio da hitbox real: a esfera mais externa do modelo (o outline), 25 blocos.
@@ -33,15 +40,30 @@ public class SunEntity extends Entity {
 	 */
 	public static final double RADIUS = 25.0;
 
-	private static final Set<SunEntity> ACTIVE = Collections.newSetFromMap(new WeakHashMap<>());
+	/** Vida sincronizada com os clientes (a HUD Sun Temperature lê daqui). */
+	private static final EntityDataAccessor<Float> DATA_HEALTH =
+			SynchedEntityData.defineId(SunEntity.class, EntityDataSerializers.FLOAT);
 
-	private float health = MAX_HEALTH;
+	private static final Set<SunEntity> ACTIVE = Collections.newSetFromMap(new WeakHashMap<>());
 
 	/** Sóis carregados no servidor. */
 	public static List<SunEntity> activeSuns() {
 		synchronized (ACTIVE) {
 			return new ArrayList<>(ACTIVE);
 		}
+	}
+
+	public SunEntity(EntityType<? extends SunEntity> type, Level level) {
+		super(type, level);
+		this.setNoGravity(true);
+	}
+
+	public float getHealthValue() {
+		return this.entityData.get(DATA_HEALTH);
+	}
+
+	private void setHealthValue(float value) {
+		this.entityData.set(DATA_HEALTH, value);
 	}
 
 	/** O segmento from→to (mundo) toca a esfera do Sol (inclui começar dentro dela)? */
@@ -54,13 +76,9 @@ public class SunEntity extends Entity {
 		return closest.distanceToSqr(center) <= RADIUS * RADIUS;
 	}
 
-	public SunEntity(EntityType<? extends SunEntity> type, Level level) {
-		super(type, level);
-		this.setNoGravity(true);
-	}
-
 	@Override
 	protected void defineSynchedData(SynchedEntityData.Builder builder) {
+		builder.define(DATA_HEALTH, MAX_HEALTH);
 	}
 
 	@Override
@@ -78,20 +96,36 @@ public class SunEntity extends Entity {
 	@Override
 	public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
 		// Único dano aceito: o vindo do projétil Ice Cube.
-		if (!(source.getDirectEntity() instanceof IceCubeProjectile)) {
+		if (!(source.getDirectEntity() instanceof IceCubeProjectile projectile)) {
 			return false;
 		}
-		this.health -= amount;
+		float remaining = this.getHealthValue() - amount;
+		this.setHealthValue(Math.max(0.0F, remaining));
+
 		this.playSound(SoundEvents.GLASS_BREAK, 8.0F, 0.6F);
-		level.sendParticles(ParticleTypes.SNOWFLAKE, this.getX(), this.getY() + 25.0, this.getZ(),
+		level.sendParticles(ParticleTypes.SNOWFLAKE, this.getX(), this.getY() + RADIUS, this.getZ(),
 				150, 15.0, 15.0, 15.0, 0.05);
-		if (this.health <= 0.0F) {
-			level.sendParticles(ParticleTypes.FLAME, this.getX(), this.getY() + 25.0, this.getZ(),
+
+		// Dano causado por um jogador: nasce uma moeda na superfície do Sol, no ponto do acerto.
+		if (source.getEntity() instanceof ServerPlayer player) {
+			MoneyCoinEntity.spawn(level, this.surfacePoint(projectile.position()), player);
+		}
+
+		if (remaining <= 0.0F) {
+			level.sendParticles(ParticleTypes.FLAME, this.getX(), this.getY() + RADIUS, this.getZ(),
 					800, 20.0, 20.0, 20.0, 0.2);
 			this.playSound(SoundEvents.GENERIC_EXPLODE.value(), 16.0F, 0.5F);
 			this.discard();
 		}
 		return true;
+	}
+
+	/** Ponto da superfície do Sol mais próximo de {@code from} (ou o próprio ponto, se estiver dentro). */
+	private Vec3 surfacePoint(Vec3 from) {
+		Vec3 center = this.position().add(0.0, RADIUS, 0.0);
+		Vec3 offset = from.subtract(center);
+		double len = offset.length();
+		return len > RADIUS ? center.add(offset.scale(RADIUS / len)) : from;
 	}
 
 	/** Precisa ser "pickable" para que projéteis (e o cursor) possam acertá-lo. */
@@ -102,11 +136,11 @@ public class SunEntity extends Entity {
 
 	@Override
 	protected void readAdditionalSaveData(ValueInput input) {
-		this.health = input.getFloatOr("SunHealth", MAX_HEALTH);
+		this.setHealthValue(input.getFloatOr("SunHealth", MAX_HEALTH));
 	}
 
 	@Override
 	protected void addAdditionalSaveData(ValueOutput output) {
-		output.putFloat("SunHealth", this.health);
+		output.putFloat("SunHealth", this.getHealthValue());
 	}
 }

@@ -16,6 +16,8 @@ public final class ModEntities {
 			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("machine_ice"));
 	private static final ResourceKey<EntityType<?>> UPGRADER_KEY =
 			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("upgrader"));
+	private static final ResourceKey<EntityType<?>> MONEY_COIN_KEY =
+			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("money_coin"));
 
 	/** Sol: caixa de colisão 50 x 50 x 50 blocos (a hitbox real é a esfera externa, raio 25). */
 	public static final EntityType<SunEntity> SUN = Registry.register(
@@ -55,6 +57,17 @@ public final class ModEntities {
 					.clientTrackingRange(10)
 					.updateInterval(20)
 					.build(UPGRADER_KEY));
+
+	/** Money Coin que voa do Sol até o jogador. */
+	public static final EntityType<MoneyCoinEntity> MONEY_COIN = Registry.register(
+			BuiltInRegistries.ENTITY_TYPE, MONEY_COIN_KEY,
+			EntityType.Builder.<MoneyCoinEntity>of(MoneyCoinEntity::new, MobCategory.MISC)
+					.sized(0.5F, 0.5F)
+					.noSave()
+					.fireImmune()
+					.clientTrackingRange(16)
+					.updateInterval(1)
+					.build(MONEY_COIN_KEY));
 
 	public static void register() {
 		// Só carrega a classe (os campos estáticos acima fazem o registro).

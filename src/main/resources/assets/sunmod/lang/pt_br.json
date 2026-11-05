@@ -8,5 +8,7 @@
   "entity.sunmod.machine_ice": "Machine Ice",
   "entity.sunmod.upgrader": "Upgrader",
   "message.sunmod.machine_cooling": "Resfriando...",
-  "message.sunmod.ice_full": "Você já tem o máximo de %s Cubos de Gelo"
+  "message.sunmod.ice_full": "Você já tem o máximo de %s Cubos de Gelo",
+  "entity.sunmod.money_coin": "Moeda",
+  "hud.sunmod.sun_temperature": "Sun Temperature"
 }

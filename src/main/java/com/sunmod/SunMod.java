@@ -18,6 +18,7 @@ public class SunMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		ModAttachments.register();
 		ModEntities.register();
 		ModItems.register();
 

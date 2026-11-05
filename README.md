@@ -49,3 +49,15 @@ Canto inferior direito: ícone do Ice Cube + barra com "tenho/limite". A barra a
 * Sol: a hitbox é a esfera externa (raio 25 = outline). O projétil testa a esfera diretamente (`SunEntity.hitsSegment`),
   porque o Minecraft só procura entidades perto da posição delas e não achava um Sol de 50 blocos.
 * Para regenerar malha/hitbox de um .bbmodel novo use o script de conversão (ver histórico do projeto).
+
+## Sun Temperature, Money Coins e Money Coin (moeda)
+* **Sun Temperature** (HUD, canto superior direito): a temperatura é a vida do Sol (144.982 °C = 100 %). Cada Ice Cube que acerta
+  faz o número e a % caírem. Só aparece quando há um Sol por perto (até 400 blocos). `SunEntity.MAX_TEMPERATURE`.
+* **Money Coin** (entidade `sunmod:money_coin`): nasce na superfície do Sol, no ponto do acerto, a cada dano; toca a animação
+  `spawn` do .bbmodel (giro 360°, subida, escala 0 → 1,5 → 1), voa até o jogador que acertou e some ao encostar,
+  somando $3 (`MoneyCoinEntity.VALUE`). Enquanto voa deixa um rastro branco fino e suave. Tamanho na tela: `MoneyCoinRenderer.COIN_SCALE`.
+* **Money Coins** (HUD, canto inferior esquerdo): "$00". Não é item: é o anexo `ModAttachments.MONEY` (salvo, mantido ao morrer,
+  sincronizado só com o próprio jogador).
+* **Ícones HD** dos itens (Ice Cube, Sun, Machine Ice, Upgrader): `textures/item/*_icon.png` (256x256). O Ice Cube usa o ícone HD só
+  no inventário; na mão, no chão e voando continua o modelo 3D.
+* O Upgrader usa a textura nova (`upgrader_1.png`).
