@@ -1,7 +1,6 @@
 {
   "item.sunmod.sun_vanilla": "Sun",
   "item.sunmod.ice_cube": "Ice Cube",
-  "item.sunmod.ice_cube_upgraded": "Upgraded Ice Cube",
   "item.sunmod.machine_ice": "Machine Ice",
   "item.sunmod.upgrader": "Upgrader",
   "entity.sunmod.sun_vanilla": "Sun",
@@ -9,6 +8,5 @@
   "entity.sunmod.machine_ice": "Machine Ice",
   "entity.sunmod.upgrader": "Upgrader",
   "message.sunmod.machine_cooling": "Cooling down...",
-  "message.sunmod.upgrader_hint": "Hold Ice Cubes in your main hand",
-  "message.sunmod.upgrader_cooling": "Recharging..."
+  "message.sunmod.ice_full": "You already carry the maximum of %s Ice Cubes"
 }

@@ -4,6 +4,7 @@ import com.sunmod.ModEntities;
 import com.sunmod.SunMod;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 
 public class SunModClient implements ClientModInitializer {
@@ -15,5 +16,8 @@ public class SunModClient implements ClientModInitializer {
 				new StationRenderer<>(context, QuadMesh.MACHINE_ICE, SunMod.id("textures/entity/machine_ice.png")));
 		EntityRendererRegistry.register(ModEntities.UPGRADER, context ->
 				new StationRenderer<>(context, QuadMesh.UPGRADER, SunMod.id("textures/entity/upgrader.png")));
+
+		// UI Ice (contador de Ice Cubes no canto inferior direito)
+		HudElementRegistry.addLast(SunMod.id("ice_hud"), new IceHud());
 	}
 }

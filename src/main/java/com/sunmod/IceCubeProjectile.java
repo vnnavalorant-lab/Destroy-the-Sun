@@ -18,8 +18,6 @@ import net.minecraft.world.phys.Vec3;
 /** O Ice Cube em voo. Causa dano apenas no {@link SunEntity}. */
 public class IceCubeProjectile extends ThrowableItemProjectile {
 	public static final float DAMAGE = 5.0F;
-	/** Dano do Ice Cube melhorado pelo Upgrader. */
-	public static final float UPGRADED_DAMAGE = 15.0F;
 
 	public IceCubeProjectile(EntityType<? extends IceCubeProjectile> type, Level level) {
 		super(type, level);
@@ -32,10 +30,6 @@ public class IceCubeProjectile extends ThrowableItemProjectile {
 	@Override
 	protected Item getDefaultItem() {
 		return ModItems.ICE_CUBE;
-	}
-
-	private float damage() {
-		return this.getItem().is(ModItems.ICE_CUBE_UPGRADED) ? UPGRADED_DAMAGE : DAMAGE;
 	}
 
 	/** Máquinas não são alvo do projétil: ele passa por elas. */
@@ -52,7 +46,7 @@ public class IceCubeProjectile extends ThrowableItemProjectile {
 			Vec3 to = from.add(this.getDeltaMovement());
 			for (SunEntity sun : SunEntity.activeSuns()) {
 				if (!sun.isRemoved() && sun.level() == this.level() && sun.hitsSegment(from, to)) {
-					sun.hurtServer(level, this.damageSources().thrown(this, this.getOwner()), this.damage());
+					sun.hurtServer(level, this.damageSources().thrown(this, this.getOwner()), DAMAGE);
 					this.breakApart(level);
 					return;
 				}
@@ -65,7 +59,7 @@ public class IceCubeProjectile extends ThrowableItemProjectile {
 	protected void onHitEntity(EntityHitResult hit) {
 		super.onHitEntity(hit);
 		if (this.level() instanceof ServerLevel level && hit.getEntity() instanceof SunEntity sun) {
-			sun.hurtServer(level, this.damageSources().thrown(this, this.getOwner()), this.damage());
+			sun.hurtServer(level, this.damageSources().thrown(this, this.getOwner()), DAMAGE);
 		}
 	}
 

@@ -26,12 +26,11 @@ public class SunMod implements ModInitializer {
 			entries.accept(ModItems.MACHINE_ICE);
 			entries.accept(ModItems.UPGRADER);
 			entries.accept(ModItems.ICE_CUBE);
-			entries.accept(ModItems.ICE_CUBE_UPGRADED);
 		});
 
 		// Botão direito em uma máquina: só vale se o olhar acertar o modelo (hitbox detalhada).
 		UseEntityCallback.EVENT.register((player, level, hand, entity, hitResult) -> {
-			if (!(entity instanceof StationEntity station) || player.isSpectator()) {
+			if (!(entity instanceof StationEntity station) || !station.isUsable() || player.isSpectator()) {
 				return InteractionResult.PASS;
 			}
 			if (hand != InteractionHand.MAIN_HAND || !station.isLookedAt(player)) {

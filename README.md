@@ -35,9 +35,13 @@ Os modelos `*_1.bbmodel` (pasta `source_models/`) usam *casco invertido*: as cam
 ## Machine Ice e Upgrader (sem craft)
 Aba **Ferramentas e utilidades** do criativo, ou `/give @s sunmod:machine_ice`, `/give @s sunmod:upgrader`.
 Clique direito em um bloco para colocar (a frente do modelo vira para você). **Soco** remove e devolve o item.
-* **Machine Ice**: botão direito = recebe 16 Ice Cubes (resfriamento de 3 s). `MachineIceEntity.ICE_PER_USE` / `COOLDOWN_TICKS`.
-* **Upgrader**: segure Ice Cubes na mão principal e clique com o botão direito = vira *Upgraded Ice Cube* (até 16 por uso).
-  Upgraded Ice Cube causa 15 de dano no Sol (normal = 5). `IceCubeProjectile.UPGRADED_DAMAGE`.
+* **Machine Ice**: botão direito = recebe **1** Ice Cube por vez (espera de 1 s entre usos), até o limite de **3** Ice Cubes
+  no inventário. `MachineIceEntity.ICE_PER_USE` / `COOLDOWN_TICKS` e `IceCubeItem.MAX_IN_INVENTORY`.
+* **Upgrader**: só decorativo por enquanto (o botão direito não faz nada).
+
+## UI Ice (HUD)
+Canto inferior direito: ícone do Ice Cube + barra com "tenho/limite". A barra azul enche conforme os Ice Cubes no inventário
+(0/3 vazia → 3/3 cheia). Código em `client/IceHud.java`; texturas em alta resolução (4 px por unidade de GUI, com `.png.mcmeta` blur) em `assets/sunmod/textures/gui/`.
 
 ## Hitbox detalhada
 * Máquinas: `data/sunmod/hitboxes/*.bin` tem 1 caixa orientada por cubo do .bbmodel (com rotação, inflate e outlines).

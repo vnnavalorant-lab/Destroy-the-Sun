@@ -16,6 +16,9 @@ import net.minecraft.world.level.Level;
 
 /** Funciona como um arco: segure o botão direito para carregar e solte para arremessar. */
 public class IceCubeItem extends Item {
+	/** Máximo de Ice Cubes que o jogador pode ter no inventário (o Machine Ice não entrega acima disso). */
+	public static final int MAX_IN_INVENTORY = 3;
+
 	public IceCubeItem(Properties properties) {
 		super(properties);
 	}

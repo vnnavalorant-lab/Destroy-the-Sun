@@ -1,7 +1,6 @@
 {
   "item.sunmod.sun_vanilla": "Sol",
   "item.sunmod.ice_cube": "Cubo de Gelo",
-  "item.sunmod.ice_cube_upgraded": "Cubo de Gelo Melhorado",
   "item.sunmod.machine_ice": "Machine Ice",
   "item.sunmod.upgrader": "Upgrader",
   "entity.sunmod.sun_vanilla": "Sol",
@@ -9,6 +8,5 @@
   "entity.sunmod.machine_ice": "Machine Ice",
   "entity.sunmod.upgrader": "Upgrader",
   "message.sunmod.machine_cooling": "Resfriando...",
-  "message.sunmod.upgrader_hint": "Segure Cubos de Gelo na mão principal",
-  "message.sunmod.upgrader_cooling": "Recarregando..."
+  "message.sunmod.ice_full": "Você já tem o máximo de %s Cubos de Gelo"
 }

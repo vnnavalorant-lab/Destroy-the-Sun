@@ -37,6 +37,11 @@ public abstract class StationEntity extends Entity {
 	/** Chamado no servidor quando o jogador usa (botão direito) a máquina. */
 	public abstract void onUse(Player player, ServerLevel level);
 
+	/** Máquinas puramente decorativas (Upgrader) retornam false: o botão direito não faz nada. */
+	public boolean isUsable() {
+		return true;
+	}
+
 	/** O olhar do jogador acerta alguma parte do modelo (respeitando os outlines)? */
 	public boolean isLookedAt(Player player) {
 		Vec3 eye = player.getEyePosition();
