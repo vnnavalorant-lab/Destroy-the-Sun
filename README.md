@@ -23,6 +23,15 @@ Coloque em `.minecraft/mods/` junto com o **Fabric API 0.141.6+1.21.11** (ou mai
 | Dano por Ice Cube (padrão 5 → 20 acertos) | `IceCubeProjectile.DAMAGE` |
 | Tamanho do Sol | `ModEntities.SUN` (`.sized(50, 50)`) (a malha já foi convertida para 50 blocos no `.mesh`) |
 
+## Barreira do Sol (orbe holográfico)
+* A cada **5 minutos** (início → início) o Sol é envolvido por uma barreira translúcida (raio 27) com a textura do orbe azul neon,
+  que fica ativa por **2 minutos**; nesse tempo o Ice Cube estilhaça nela e o Sol **não recebe dano**. Depois some e o Sol volta a ser danificado.
+* Aparece com fade-in (1 s), gira devagar e pisca nos últimos 10 s como aviso; fade-out de 2 s.
+* O 1º ciclo conta a partir do momento em que o Sol é colocado. O estado do ciclo é salvo no mundo.
+* Ajustes: `SunEntity.SHIELD_INTERVAL_TICKS`, `SHIELD_DURATION_TICKS`, `SHIELD_RADIUS`.
+* Textura: `python tools_gen_shield_texture.py` (usa `source_models/orbe_holografico_azul_neon.png`; ajuste `BASE_ALPHA` para o vidro ficar mais/menos visível).
+* Código: `SunEntity` (ciclo/dano), `IceCubeProjectile` (colisão), `SunRenderer` + `ShieldMesh` (visual).
+
 ## Arquivos de origem
 * `sun_vanilla.bbmodel` → `src/client/resources/assets/sunmod/models/sun_vanilla.mesh` (3 esferas, escala x40)
 * `ice_cube.bbmodel` → `assets/sunmod/models/item/ice_cube.json` (2 cubos)

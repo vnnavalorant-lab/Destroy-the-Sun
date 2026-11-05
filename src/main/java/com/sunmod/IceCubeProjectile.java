@@ -46,6 +46,11 @@ public class IceCubeProjectile extends ThrowableItemProjectile {
 			Vec3 to = from.add(this.getDeltaMovement());
 			for (SunEntity sun : SunEntity.activeSuns()) {
 				if (!sun.isRemoved() && sun.level() == this.level() && sun.hitsSegment(from, to)) {
+					if (sun.isShielded()) { // barreira ativa: o cubo estilhaça sem causar dano
+						sun.onShieldHit(level, from);
+						this.breakApart(level);
+						return;
+					}
 					sun.hurtServer(level, this.damageSources().thrown(this, this.getOwner()), DAMAGE);
 					this.breakApart(level);
 					return;
