@@ -17,7 +17,8 @@ import net.minecraft.resources.Identifier;
  * As 2 esferas externas são o "outline" (casco invertido): precisam de culling
  * de faces para que só apareça a borda ao redor do núcleo.
  * Enquanto a barreira está ativa, desenha por cima o orbe holográfico translúcido
- * (textures/entity/sun_shield.png) envolvendo o Sol.
+ * (textures/entity/sun_shield.png) envolvendo o Sol. É enviada com order(1) para ser
+ * desenhada DEPOIS do Sol (senão ela grava profundidade antes e esconde o Sol que está dentro).
  */
 public class SunRenderer extends EntityRenderer<SunEntity, SunRenderState> {
 	private static final Identifier TEXTURE = SunMod.id("textures/entity/sun_vanilla.png");
@@ -67,7 +68,7 @@ public class SunRenderer extends EntityRenderer<SunEntity, SunRenderState> {
 			poseStack.pushPose();
 			poseStack.translate(0.0, SunEntity.RADIUS, 0.0); // centro do Sol
 			poseStack.mulPose(Axis.YP.rotationDegrees(state.shieldSpin));
-			collector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(SHIELD_TEXTURE),
+			collector.order(1).submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(SHIELD_TEXTURE),
 					(pose, consumer) -> ShieldMesh.render(pose, consumer, argb, LightTexture.FULL_BRIGHT));
 			poseStack.popPose();
 		}
