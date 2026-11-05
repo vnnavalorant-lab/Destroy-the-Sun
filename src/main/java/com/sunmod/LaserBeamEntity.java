@@ -10,7 +10,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -81,12 +80,6 @@ public class LaserBeamEntity extends Entity {
 		if (this.level() instanceof ServerLevel level && level.getGameTime() - this.lastRefresh > MAX_IDLE_TICKS) {
 			this.discard();
 		}
-	}
-
-	/** O raio pode ter centenas de blocos: a caixa de culling cobre do início ao fim. */
-	@Override
-	public AABB getBoundingBoxForCulling() {
-		return new AABB(this.getStart(), this.getEnd()).inflate(4.0);
 	}
 
 	/** Sempre visível (a caixa da entidade é minúscula e o teste de distância padrão a esconderia). */

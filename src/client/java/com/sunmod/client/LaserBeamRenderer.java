@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -35,6 +36,12 @@ public class LaserBeamRenderer extends EntityRenderer<LaserBeamEntity, LaserBeam
 
 	public LaserBeamRenderer(EntityRendererProvider.Context context) {
 		super(context);
+	}
+
+	/** O raio pode ter centenas de blocos: a caixa de culling cobre do início ao fim. */
+	@Override
+	protected AABB getBoundingBoxForCulling(LaserBeamEntity entity) {
+		return new AABB(entity.getStart(), entity.getEnd()).inflate(4.0);
 	}
 
 	@Override
