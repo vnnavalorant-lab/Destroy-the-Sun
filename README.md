@@ -24,12 +24,13 @@ Coloque em `.minecraft/mods/` junto com o **Fabric API 0.141.6+1.21.11** (ou mai
 | Tamanho do Sol | `ModEntities.SUN` (`.sized(50, 50)`) (a malha já foi convertida para 50 blocos no `.mesh`) |
 
 ## Barreira do Sol (orbe holográfico)
-* A cada **5 minutos** (início → início) o Sol é envolvido por uma barreira translúcida (raio 27) com a textura do orbe azul neon,
+* A cada **5 minutos** (início → início) o Sol é envolvido por uma barreira translúcida (raio 27) com a textura de colmeia azul neon,
   que fica ativa por **2 minutos**; nesse tempo o Ice Cube estilhaça nela e o Sol **não recebe dano**. Depois some e o Sol volta a ser danificado.
 * Aparece com fade-in (1 s), gira devagar e pisca nos últimos 10 s como aviso; fade-out de 2 s.
 * O 1º ciclo conta a partir do momento em que o Sol é colocado. O estado do ciclo é salvo no mundo.
 * Ajustes: `SunEntity.SHIELD_INTERVAL_TICKS`, `SHIELD_DURATION_TICKS`, `SHIELD_RADIUS`.
-* Textura: `python tools_gen_shield_texture.py` (usa `source_models/orbe_holografico_azul_neon.png`; ajuste `BASE_ALPHA` para o vidro ficar mais/menos visível).
+* Textura: `python tools_gen_shield_texture.py` (usa `source_models/escudo_energia_colmeia.png` com projeção senoidal, sem emenda e sem espremer nos polos; ajuste `FILL_ALPHA` para o vidro ficar mais/menos visível).
+* Sem Z-fighting: `ShieldMesh` desenha só os quads virados para a câmera (uma camada por pixel).
 * Código: `SunEntity` (ciclo/dano), `IceCubeProjectile` (colisão), `SunRenderer` + `ShieldMesh` (visual).
 
 ## Arquivos de origem
