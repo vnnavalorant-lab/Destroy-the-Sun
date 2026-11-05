@@ -10,5 +10,9 @@
   "message.sunmod.machine_cooling": "Cooling down...",
   "message.sunmod.ice_full": "You already carry the maximum of %s Ice Cubes",
   "entity.sunmod.money_coin": "Money Coin",
-  "hud.sunmod.sun_temperature": "Sun Temperature"
+  "hud.sunmod.sun_temperature": "Sun Temperature",
+  "item.sunmod.gun_ice": "Gun Ice",
+  "item.sunmod.lazer_ice": "Lazer Ice",
+  "item.sunmod.gravity_gun": "Gravity Gun",
+  "message.sunmod.no_ammo": "Out of Ice Cubes"
 }

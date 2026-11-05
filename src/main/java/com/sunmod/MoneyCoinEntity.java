@@ -23,7 +23,7 @@ import java.util.UUID;
  * voa até o jogador que causou o dano e some ao encostar nele, somando {@link #VALUE} ao dinheiro (HUD).
  */
 public class MoneyCoinEntity extends Entity {
-	/** Dinheiro ganho por moeda. */
+	/** Dinheiro ganho por moeda do Ice Cube (a Gun Ice dá 2x, o Lazer Ice 4x). */
 	public static final int VALUE = 3;
 	/** Duração da animação de spawn (0,625 s do .bbmodel = 12,5 ticks). */
 	public static final int SPAWN_TICKS = 13;
@@ -33,6 +33,8 @@ public class MoneyCoinEntity extends Entity {
 	private static final int TRAIL_LENGTH = 10;
 
 	private UUID targetId;
+	/** Dinheiro que esta moeda soma ao jogador (só no servidor). */
+	private int value = VALUE;
 	/** Posições recentes (só no cliente), usadas no rastro branco. */
 	private final ArrayDeque<Vec3> trail = new ArrayDeque<>();
 
@@ -44,9 +46,15 @@ public class MoneyCoinEntity extends Entity {
 
 	/** Cria uma moeda em {@code pos} destinada ao jogador {@code target}. */
 	public static void spawn(ServerLevel level, Vec3 pos, ServerPlayer target) {
+		spawn(level, pos, target, VALUE);
+	}
+
+	/** Cria uma moeda em {@code pos} que soma {@code value} ao dinheiro do jogador {@code target}. */
+	public static void spawn(ServerLevel level, Vec3 pos, ServerPlayer target, int value) {
 		MoneyCoinEntity coin = new MoneyCoinEntity(ModEntities.MONEY_COIN, level);
 		coin.setPos(pos.x, pos.y, pos.z);
 		coin.targetId = target.getUUID();
+		coin.value = value;
 		level.addFreshEntity(coin);
 		level.playSound(null, pos.x, pos.y, pos.z, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.8F, 1.6F);
 	}
@@ -94,7 +102,7 @@ public class MoneyCoinEntity extends Entity {
 		double distance = delta.length();
 
 		if (distance < 1.0 || target.getBoundingBox().inflate(0.25).contains(center)) {
-			target.setAttached(ModAttachments.MONEY, target.getAttachedOrElse(ModAttachments.MONEY, 0) + VALUE);
+			target.setAttached(ModAttachments.MONEY, target.getAttachedOrElse(ModAttachments.MONEY, 0) + this.value);
 			level.playSound(null, target.getX(), target.getY(), target.getZ(),
 					SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.6F, 1.5F);
 			this.discard();

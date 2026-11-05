@@ -28,8 +28,8 @@ import java.util.WeakHashMap;
  * e cada dano faz nascer uma {@link MoneyCoinEntity} para o jogador que acertou.
  */
 public class SunEntity extends Entity {
-	/** Vida total do Sol. Cada Ice Cube causa {@link IceCubeProjectile#DAMAGE}. */
-	public static final float MAX_HEALTH = 100.0F;
+	/** Vida total do Sol (10x a original: eram 100). Cada Ice Cube causa {@link IceCubeProjectile#DAMAGE}. */
+	public static final float MAX_HEALTH = 1000.0F;
 
 	/** Temperatura (°C) mostrada na HUD com a vida cheia; cai junto com a vida. */
 	public static final int MAX_TEMPERATURE = 144982;
@@ -113,6 +113,32 @@ public class SunEntity extends Entity {
 		return closest.distanceToSqr(center) <= radius * radius;
 	}
 
+	/**
+	 * Primeiro ponto em que o raio from→to entra na esfera do Sol (ou {@code from}, se já começar dentro).
+	 * Devolve null se o segmento não toca a esfera. Usado pelos tiros instantâneos (Lazer Ice).
+	 */
+	public Vec3 rayHit(Vec3 from, Vec3 to) {
+		double radius = this.getHitRadius();
+		Vec3 center = this.position().add(0.0, RADIUS, 0.0);
+		Vec3 d = to.subtract(from);
+		double a = d.lengthSqr();
+		if (a < 1.0E-7) {
+			return null;
+		}
+		Vec3 oc = from.subtract(center);
+		double c = oc.lengthSqr() - radius * radius;
+		if (c <= 0.0) {
+			return from;
+		}
+		double b = oc.dot(d);
+		double disc = b * b - a * c;
+		if (disc < 0.0) {
+			return null;
+		}
+		double t = (-b - Math.sqrt(disc)) / a;
+		return (t < 0.0 || t > 1.0) ? null : from.add(d.scale(t));
+	}
+
 	@Override
 	protected void defineSynchedData(SynchedEntityData.Builder builder) {
 		builder.define(DATA_HEALTH, MAX_HEALTH);
@@ -169,24 +195,37 @@ public class SunEntity extends Entity {
 
 	@Override
 	public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
-		// Com a barreira ativa o Sol é invulnerável.
-		if (this.isShielded()) {
+		// Único dano aceito: o vindo do projétil Ice Cube (inclui os tiros da Gun Ice).
+		if (!(source.getDirectEntity() instanceof IceCubeProjectile projectile)) {
 			return false;
 		}
-		// Único dano aceito: o vindo do projétil Ice Cube.
-		if (!(source.getDirectEntity() instanceof IceCubeProjectile projectile)) {
+		ServerPlayer shooter = source.getEntity() instanceof ServerPlayer player ? player : null;
+		return this.applyWeaponDamage(level, shooter, projectile.position(), amount, projectile.getCoinValue());
+	}
+
+	/**
+	 * Dano das armas (projétil ou raio): tira vida, faz efeitos e, se foi um jogador, nasce uma moeda
+	 * com {@code coinValue} de dinheiro no ponto do acerto. Com a barreira ativa não faz nada.
+	 *
+	 * @return true se o dano foi aplicado
+	 */
+	public boolean applyWeaponDamage(ServerLevel level, ServerPlayer shooter, Vec3 hitPos, float amount, int coinValue) {
+		// Com a barreira ativa o Sol é invulnerável.
+		if (this.isShielded()) {
 			return false;
 		}
 		float remaining = this.getHealthValue() - amount;
 		this.setHealthValue(Math.max(0.0F, remaining));
 
+		// Armas de tiro rápido: menos partículas por acerto (para não pesar com 4-5 acertos por segundo).
+		int particles = amount > IceCubeProjectile.DAMAGE ? 40 : 150;
 		this.playSound(SoundEvents.GLASS_BREAK, 8.0F, 0.6F);
 		level.sendParticles(ParticleTypes.SNOWFLAKE, this.getX(), this.getY() + RADIUS, this.getZ(),
-				150, 15.0, 15.0, 15.0, 0.05);
+				particles, 15.0, 15.0, 15.0, 0.05);
 
 		// Dano causado por um jogador: nasce uma moeda na superfície do Sol, no ponto do acerto.
-		if (source.getEntity() instanceof ServerPlayer player) {
-			MoneyCoinEntity.spawn(level, this.surfacePoint(projectile.position()), player);
+		if (shooter != null) {
+			MoneyCoinEntity.spawn(level, this.surfacePoint(hitPos), shooter, coinValue);
 		}
 
 		if (remaining <= 0.0F) {

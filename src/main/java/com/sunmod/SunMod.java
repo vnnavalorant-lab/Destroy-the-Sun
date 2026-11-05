@@ -27,6 +27,9 @@ public class SunMod implements ModInitializer {
 			entries.accept(ModItems.MACHINE_ICE);
 			entries.accept(ModItems.UPGRADER);
 			entries.accept(ModItems.ICE_CUBE);
+			entries.accept(ModItems.GUN_ICE);
+			entries.accept(ModItems.LAZER_ICE);
+			entries.accept(ModItems.GRAVITY_GUN);
 		});
 
 		// Botão direito em uma máquina: só vale se o olhar acertar o modelo (hitbox detalhada).

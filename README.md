@@ -19,8 +19,8 @@ Coloque em `.minecraft/mods/` junto com o **Fabric API 0.141.6+1.21.11** (ou mai
 ## Ajustes rápidos
 | O quê | Onde |
 |---|---|
-| Vida do Sol (padrão 100) | `SunEntity.MAX_HEALTH` |
-| Dano por Ice Cube (padrão 5 → 20 acertos) | `IceCubeProjectile.DAMAGE` |
+| Vida do Sol (padrão 1000 = 10x a original) | `SunEntity.MAX_HEALTH` |
+| Dano por Ice Cube (padrão 5 → 200 acertos) | `IceCubeProjectile.DAMAGE` |
 | Tamanho do Sol | `ModEntities.SUN` (`.sized(50, 50)`) (a malha já foi convertida para 50 blocos no `.mesh`) |
 
 ## Barreira do Sol (orbe holográfico)
@@ -45,13 +45,28 @@ Os modelos `*_1.bbmodel` (pasta `source_models/`) usam *casco invertido*: as cam
 ## Machine Ice e Upgrader (sem craft)
 Aba **Ferramentas e utilidades** do criativo, ou `/give @s sunmod:machine_ice`, `/give @s sunmod:upgrader`.
 Clique direito em um bloco para colocar (a frente do modelo vira para você). **Soco** remove e devolve o item.
-* **Machine Ice**: botão direito = recebe **1** Ice Cube por vez (espera de 1 s entre usos), até o limite de **3** Ice Cubes
+* **Machine Ice**: botão direito = recebe **1** Ice Cube por vez (espera de 1 s entre usos), até o limite de **64** Ice Cubes
   no inventário. `MachineIceEntity.ICE_PER_USE` / `COOLDOWN_TICKS` e `IceCubeItem.MAX_IN_INVENTORY`.
 * **Upgrader**: só decorativo por enquanto (o botão direito não faz nada).
 
 ## UI Ice (HUD)
 Canto inferior direito: ícone do Ice Cube + barra com "tenho/limite". A barra azul enche conforme os Ice Cubes no inventário
-(0/3 vazia → 3/3 cheia). Código em `client/IceHud.java`; texturas em alta resolução (4 px por unidade de GUI, com `.png.mcmeta` blur) em `assets/sunmod/textures/gui/`.
+(0/64 vazia → 64/64 cheia). Código em `client/IceHud.java`; texturas em alta resolução (4 px por unidade de GUI, com `.png.mcmeta` blur) em `assets/sunmod/textures/gui/`.
+
+## Armas (Gun Ice, Lazer Ice, Gravity Gun)
+Aba **Ferramentas e utilidades** do criativo, ou `/give @s sunmod:gun_ice`, `sunmod:lazer_ice`, `sunmod:gravity_gun`.
+Os modelos vêm de `source_models/*.bbmodel` convertidos por `tools_convert_weapons.py` (outlines = casco invertido, como no Ice Cube).
+
+| Arma | Dano no Sol | Dinheiro por acerto | Como atira |
+|---|---|---|---|
+| Ice Cube (arremesso) | 5 | $3 | segurar para carregar e soltar |
+| **Gun Ice** | 10 (2x) | $6 (2x) | **sem carregar**, 4 tiros/s enquanto o botão direito estiver apertado (projétil de gelo rápido) |
+| **Lazer Ice** | 20 (4x) | $12 (4x) | **sem carregar**, raio instantâneo, 5 pulsos/s enquanto o botão direito estiver apertado |
+| **Gravity Gun** | — | — | só existe como item por enquanto, não faz nada |
+
+* **Munição:** Gun Ice e Lazer Ice gastam **1 Ice Cube por disparo** (`AutoFireItem.AMMO_PER_SHOT`; coloque 0 para munição infinita). No criativo não gasta.
+* Ajustes: `GunIceItem.DAMAGE / COIN_VALUE / FIRE_INTERVAL_TICKS`, `LazerIceItem.DAMAGE / COIN_VALUE / FIRE_INTERVAL_TICKS / RANGE`.
+* Os dois respeitam a barreira do Sol (não causam dano enquanto ela estiver ativa). O dano passa por `SunEntity.applyWeaponDamage`.
 
 ## Hitbox detalhada
 * Máquinas: `data/sunmod/hitboxes/*.bin` tem 1 caixa orientada por cubo do .bbmodel (com rotação, inflate e outlines).

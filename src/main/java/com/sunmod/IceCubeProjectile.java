@@ -19,12 +19,35 @@ import net.minecraft.world.phys.Vec3;
 public class IceCubeProjectile extends ThrowableItemProjectile {
 	public static final float DAMAGE = 5.0F;
 
+	/** Dano e dinheiro deste projétil (o Ice Cube usa os padrões; a Gun Ice troca por 2x). */
+	private float damage = DAMAGE;
+	private int coinValue = MoneyCoinEntity.VALUE;
+	/** Vida máxima em ticks (0 = sem limite). Os tiros da Gun Ice somem sozinhos. */
+	private int maxLife = 0;
+
 	public IceCubeProjectile(EntityType<? extends IceCubeProjectile> type, Level level) {
 		super(type, level);
 	}
 
 	public IceCubeProjectile(Level level, LivingEntity owner, ItemStack stack) {
 		super(ModEntities.ICE_CUBE_PROJECTILE, owner, level, stack);
+	}
+
+	public float getDamage() {
+		return this.damage;
+	}
+
+	public int getCoinValue() {
+		return this.coinValue;
+	}
+
+	/** Configura como tiro de arma: dano, dinheiro por acerto, sem gravidade e com tempo de vida. */
+	public IceCubeProjectile asBullet(float damage, int coinValue, int maxLife) {
+		this.damage = damage;
+		this.coinValue = coinValue;
+		this.maxLife = maxLife;
+		this.setNoGravity(true);
+		return this;
 	}
 
 	@Override
@@ -40,6 +63,10 @@ public class IceCubeProjectile extends ThrowableItemProjectile {
 
 	@Override
 	public void tick() {
+		if (this.maxLife > 0 && this.tickCount > this.maxLife && !this.level().isClientSide()) {
+			this.discard();
+			return;
+		}
 		// Colisão com o Sol por esfera (hitbox do tamanho do modelo), antes de mover.
 		if (this.level() instanceof ServerLevel level && !this.isRemoved()) {
 			Vec3 from = this.position();
@@ -51,7 +78,7 @@ public class IceCubeProjectile extends ThrowableItemProjectile {
 						this.breakApart(level);
 						return;
 					}
-					sun.hurtServer(level, this.damageSources().thrown(this, this.getOwner()), DAMAGE);
+					sun.hurtServer(level, this.damageSources().thrown(this, this.getOwner()), this.damage);
 					this.breakApart(level);
 					return;
 				}
@@ -64,7 +91,7 @@ public class IceCubeProjectile extends ThrowableItemProjectile {
 	protected void onHitEntity(EntityHitResult hit) {
 		super.onHitEntity(hit);
 		if (this.level() instanceof ServerLevel level && hit.getEntity() instanceof SunEntity sun) {
-			sun.hurtServer(level, this.damageSources().thrown(this, this.getOwner()), DAMAGE);
+			sun.hurtServer(level, this.damageSources().thrown(this, this.getOwner()), this.damage);
 		}
 	}
 

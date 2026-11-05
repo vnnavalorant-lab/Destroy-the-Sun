@@ -10,5 +10,9 @@
   "message.sunmod.machine_cooling": "Resfriando...",
   "message.sunmod.ice_full": "Você já tem o máximo de %s Cubos de Gelo",
   "entity.sunmod.money_coin": "Moeda",
-  "hud.sunmod.sun_temperature": "Sun Temperature"
+  "hud.sunmod.sun_temperature": "Sun Temperature",
+  "item.sunmod.gun_ice": "Gun Ice",
+  "item.sunmod.lazer_ice": "Lazer Ice",
+  "item.sunmod.gravity_gun": "Gravity Gun",
+  "message.sunmod.no_ammo": "Sem Cubos de Gelo"
 }

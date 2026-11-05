@@ -10,6 +10,9 @@ public final class ModItems {
 	private static final ResourceKey<Item> SUN_KEY = ResourceKey.create(Registries.ITEM, SunMod.id("sun_vanilla"));
 	private static final ResourceKey<Item> ICE_CUBE_KEY = ResourceKey.create(Registries.ITEM, SunMod.id("ice_cube"));
 	private static final ResourceKey<Item> MACHINE_ICE_KEY = ResourceKey.create(Registries.ITEM, SunMod.id("machine_ice"));
+	private static final ResourceKey<Item> GUN_ICE_KEY = ResourceKey.create(Registries.ITEM, SunMod.id("gun_ice"));
+	private static final ResourceKey<Item> LAZER_ICE_KEY = ResourceKey.create(Registries.ITEM, SunMod.id("lazer_ice"));
+	private static final ResourceKey<Item> GRAVITY_GUN_KEY = ResourceKey.create(Registries.ITEM, SunMod.id("gravity_gun"));
 	private static final ResourceKey<Item> UPGRADER_KEY = ResourceKey.create(Registries.ITEM, SunMod.id("upgrader"));
 
 	/** Item que coloca o Sol no mundo. */
@@ -27,6 +30,18 @@ public final class ModItems {
 	public static final Item UPGRADER = Registry.register(BuiltInRegistries.ITEM, UPGRADER_KEY,
 			new StationItem(new Item.Properties().setId(UPGRADER_KEY).stacksTo(16),
 					level -> new UpgraderEntity(ModEntities.UPGRADER, level)));
+
+	/** Atira Ice Cubes sem carregar (2x dano e 2x dinheiro). */
+	public static final Item GUN_ICE = Registry.register(BuiltInRegistries.ITEM, GUN_ICE_KEY,
+			new GunIceItem(new Item.Properties().setId(GUN_ICE_KEY).stacksTo(1)));
+
+	/** Raio contínuo (4x dano e 4x dinheiro). */
+	public static final Item LAZER_ICE = Registry.register(BuiltInRegistries.ITEM, LAZER_ICE_KEY,
+			new LazerIceItem(new Item.Properties().setId(LAZER_ICE_KEY).stacksTo(1)));
+
+	/** Só existe no jogo por enquanto: não faz nada. */
+	public static final Item GRAVITY_GUN = Registry.register(BuiltInRegistries.ITEM, GRAVITY_GUN_KEY,
+			new Item(new Item.Properties().setId(GRAVITY_GUN_KEY).stacksTo(1)));
 
 	public static void register() {
 		// Só carrega a classe.
