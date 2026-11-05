@@ -3,6 +3,7 @@ package com.sunmod.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.sunmod.SunEntity;
 import com.sunmod.SunMod;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -29,7 +30,8 @@ public class SunRenderer extends EntityRenderer<SunEntity, SunRenderState> {
 
 	@Override
 	public void submit(SunRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-		collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE), SunMesh::render);
+		collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(TEXTURE),
+				(pose, consumer) -> QuadMesh.SUN.render(pose, consumer, LightTexture.FULL_BRIGHT, true));
 		super.submit(state, poseStack, collector, camera);
 	}
 }

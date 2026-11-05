@@ -1,6 +1,7 @@
 package com.sunmod.client;
 
 import com.sunmod.ModEntities;
+import com.sunmod.SunMod;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
@@ -10,5 +11,9 @@ public class SunModClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		EntityRendererRegistry.register(ModEntities.SUN, SunRenderer::new);
 		EntityRendererRegistry.register(ModEntities.ICE_CUBE_PROJECTILE, ThrownItemRenderer::new);
+		EntityRendererRegistry.register(ModEntities.MACHINE_ICE, context ->
+				new StationRenderer<>(context, QuadMesh.MACHINE_ICE, SunMod.id("textures/entity/machine_ice.png")));
+		EntityRendererRegistry.register(ModEntities.UPGRADER, context ->
+				new StationRenderer<>(context, QuadMesh.UPGRADER, SunMod.id("textures/entity/upgrader.png")));
 	}
 }

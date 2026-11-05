@@ -31,3 +31,17 @@ Coloque em `.minecraft/mods/` junto com o **Fabric API 0.141.6+1.21.11** (ou mai
 Os modelos `*_1.bbmodel` (pasta `source_models/`) usam *casco invertido*: as camadas "outline" têm as faces viradas para dentro.
 * Sol: `SunRenderer` usa `RenderTypes.entityCutout` (com culling) para só aparecer a borda das esferas externas.
 * Ice Cube: o 2º elemento de `models/item/ice_cube.json` é um cubo invertido (`from` > `to`) 0,25px maior.
+
+## Machine Ice e Upgrader (sem craft)
+Aba **Ferramentas e utilidades** do criativo, ou `/give @s sunmod:machine_ice`, `/give @s sunmod:upgrader`.
+Clique direito em um bloco para colocar (a frente do modelo vira para você). **Soco** remove e devolve o item.
+* **Machine Ice**: botão direito = recebe 16 Ice Cubes (resfriamento de 3 s). `MachineIceEntity.ICE_PER_USE` / `COOLDOWN_TICKS`.
+* **Upgrader**: segure Ice Cubes na mão principal e clique com o botão direito = vira *Upgraded Ice Cube* (até 16 por uso).
+  Upgraded Ice Cube causa 15 de dano no Sol (normal = 5). `IceCubeProjectile.UPGRADED_DAMAGE`.
+
+## Hitbox detalhada
+* Máquinas: `data/sunmod/hitboxes/*.bin` tem 1 caixa orientada por cubo do .bbmodel (com rotação, inflate e outlines).
+  Clique direito e soco só valem se o olhar do jogador acertar uma dessas caixas (`DetailedHitbox`, `StationEntity.isLookedAt`).
+* Sol: a hitbox é a esfera externa (raio 25 = outline). O projétil testa a esfera diretamente (`SunEntity.hitsSegment`),
+  porque o Minecraft só procura entidades perto da posição delas e não achava um Sol de 50 blocos.
+* Para regenerar malha/hitbox de um .bbmodel novo use o script de conversão (ver histórico do projeto).
