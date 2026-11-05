@@ -32,6 +32,10 @@ public abstract class AutoFireItem extends Item {
 	/** Faz um disparo (só roda no servidor, com munição já descontada). */
 	protected abstract void fire(ServerLevel level, Player player, ItemStack weapon);
 
+	/** Chamado a CADA tick em que o botão está apertado (o Lazer Ice usa para manter o raio contínuo). */
+	protected void holdTick(ServerLevel level, Player player, ItemStack weapon) {
+	}
+
 	@Override
 	public InteractionResult use(Level level, Player player, InteractionHand hand) {
 		if (AMMO_PER_SHOT > 0 && !IceCubeItem.hasAny(player)) {
@@ -57,6 +61,7 @@ public abstract class AutoFireItem extends Item {
 		if (!(level instanceof ServerLevel serverLevel) || !(user instanceof Player player)) {
 			return;
 		}
+		this.holdTick(serverLevel, player, stack);
 		int elapsed = USE_DURATION - remainingUseTicks;
 		if (elapsed % this.fireInterval() != 0) {
 			return;

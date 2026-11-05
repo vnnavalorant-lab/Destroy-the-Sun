@@ -19,8 +19,8 @@ Coloque em `.minecraft/mods/` junto com o **Fabric API 0.141.6+1.21.11** (ou mai
 ## Ajustes rápidos
 | O quê | Onde |
 |---|---|
-| Vida do Sol (padrão 10000 = 100x a original) | `SunEntity.MAX_HEALTH` |
-| Dano por Ice Cube (padrão 5 → 2000 acertos) | `IceCubeProjectile.DAMAGE` |
+| Vida do Sol (padrão 50000 = 500x a original) | `SunEntity.MAX_HEALTH` |
+| Dano por Ice Cube (padrão 5 → 10000 acertos) | `IceCubeProjectile.DAMAGE` |
 | Tamanho do Sol | `ModEntities.SUN` (`.sized(50, 50)`) (a malha já foi convertida para 50 blocos no `.mesh`) |
 
 ## Barreira do Sol (orbe holográfico)

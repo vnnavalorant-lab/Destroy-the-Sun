@@ -14,5 +14,6 @@
   "item.sunmod.gun_ice": "Gun Ice",
   "item.sunmod.lazer_ice": "Lazer Ice",
   "item.sunmod.gravity_gun": "Gravity Gun",
-  "message.sunmod.no_ammo": "Out of Ice Cubes"
+  "message.sunmod.no_ammo": "Out of Ice Cubes",
+  "entity.sunmod.laser_beam": "Laser Beam"
 }

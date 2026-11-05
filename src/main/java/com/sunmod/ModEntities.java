@@ -16,6 +16,8 @@ public final class ModEntities {
 			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("machine_ice"));
 	private static final ResourceKey<EntityType<?>> UPGRADER_KEY =
 			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("upgrader"));
+	private static final ResourceKey<EntityType<?>> LASER_BEAM_KEY =
+			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("laser_beam"));
 	private static final ResourceKey<EntityType<?>> MONEY_COIN_KEY =
 			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("money_coin"));
 
@@ -68,6 +70,17 @@ public final class ModEntities {
 					.clientTrackingRange(16)
 					.updateInterval(1)
 					.build(MONEY_COIN_KEY));
+
+	/** Raio visual do Lazer Ice (só desenho: o dano é feito pelo item). */
+	public static final EntityType<LaserBeamEntity> LASER_BEAM = Registry.register(
+			BuiltInRegistries.ENTITY_TYPE, LASER_BEAM_KEY,
+			EntityType.Builder.<LaserBeamEntity>of(LaserBeamEntity::new, MobCategory.MISC)
+					.sized(0.1F, 0.1F)
+					.noSave()
+					.fireImmune()
+					.clientTrackingRange(32)
+					.updateInterval(1)
+					.build(LASER_BEAM_KEY));
 
 	public static void register() {
 		// Só carrega a classe (os campos estáticos acima fazem o registro).

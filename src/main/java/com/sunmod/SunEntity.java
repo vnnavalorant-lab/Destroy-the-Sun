@@ -29,7 +29,7 @@ import java.util.WeakHashMap;
  */
 public class SunEntity extends Entity {
 	/** Vida total do Sol (100x a original: eram 100). Cada Ice Cube causa {@link IceCubeProjectile#DAMAGE}. */
-	public static final float MAX_HEALTH = 10000.0F;
+	public static final float MAX_HEALTH = 50000.0F;
 
 	/** Temperatura (°C) mostrada na HUD com a vida cheia; cai junto com a vida. */
 	public static final int MAX_TEMPERATURE = 144982;
@@ -186,11 +186,10 @@ public class SunEntity extends Entity {
 		}
 	}
 
-	/** Chamado quando um projétil bate na barreira: faíscas e som, sem dano. */
+	/** Chamado quando um projétil bate na barreira: só faíscas (sem som e sem dano). */
 	public void onShieldHit(ServerLevel level, Vec3 from) {
 		Vec3 p = this.surfacePoint(from);
 		level.sendParticles(ParticleTypes.ELECTRIC_SPARK, p.x, p.y, p.z, 30, 1.0, 1.0, 1.0, 0.3);
-		level.playSound(null, p.x, p.y, p.z, SoundEvents.GLASS_BREAK, SoundSource.NEUTRAL, 3.0F, 1.8F);
 	}
 
 	@Override
@@ -219,7 +218,6 @@ public class SunEntity extends Entity {
 
 		// Armas de tiro rápido: menos partículas por acerto (para não pesar com 4-5 acertos por segundo).
 		int particles = amount > IceCubeProjectile.DAMAGE ? 40 : 150;
-		this.playSound(SoundEvents.GLASS_BREAK, 8.0F, 0.6F);
 		level.sendParticles(ParticleTypes.SNOWFLAKE, this.getX(), this.getY() + RADIUS, this.getZ(),
 				particles, 15.0, 15.0, 15.0, 0.05);
 

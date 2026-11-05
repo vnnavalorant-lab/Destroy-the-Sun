@@ -105,8 +105,6 @@ public class IceCubeProjectile extends ThrowableItemProjectile {
 
 	private void breakApart(ServerLevel level) {
 		level.sendParticles(ParticleTypes.SNOWFLAKE, this.getX(), this.getY(), this.getZ(), 12, 0.2, 0.2, 0.2, 0.05);
-		level.playSound(null, this.getX(), this.getY(), this.getZ(),
-				SoundEvents.GLASS_BREAK, SoundSource.NEUTRAL, 0.6F, 1.4F);
 		this.discard();
 	}
 }
