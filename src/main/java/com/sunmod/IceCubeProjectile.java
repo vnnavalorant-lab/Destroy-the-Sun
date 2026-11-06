@@ -97,6 +97,8 @@ public class IceCubeProjectile extends ThrowableItemProjectile {
 		super.onHitEntity(hit);
 		if (this.level() instanceof ServerLevel level && hit.getEntity() instanceof SunEntity sun) {
 			sun.hurtServer(level, this.damageSources().thrown(this, this.getOwner()), this.damage);
+		} else if (this.level() instanceof ServerLevel level && hit.getEntity() instanceof SolarFragmentEntity fragment) {
+			fragment.hurtServer(level, this.damageSources().thrown(this, this.getOwner()), this.damage);
 		}
 	}
 

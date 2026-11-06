@@ -52,5 +52,10 @@
   "message.sunmod.ability_active": "%s ativado!",
   "message.sunmod.no_sun": "Nenhum Sol por perto",
   "message.sunmod.no_comet": "Nenhum cometa por perto",
-  "command.sunmod.reset": "Money Coins e melhorias zerados."
+  "command.sunmod.reset": "Money Coins e melhorias zerados.",
+  "entity.sunmod.solar_fragment": "Fragmento Solar",
+  "rarity.sunmod.common": "COMUM",
+  "item.sunmod.solar_fragment": "Fragmento Solar",
+  "item.sunmod.solar_spark": "Brilho Solar",
+  "message.sunmod.fragment_falling": "Um Fragmento Solar está caindo!"
 }

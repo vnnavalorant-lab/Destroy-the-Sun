@@ -56,6 +56,18 @@ public class SunMod implements ModInitializer {
 							Abilities.resetState(player);
 							ctx.getSource().sendSuccess(() -> Component.translatable("command.sunmod.reset"), false);
 							return Command.SINGLE_SUCCESS;
+						}))
+						// /sunmod fragment: solta um Fragmento Solar do Sol mais próximo na sua direção (para testar).
+						.then(Commands.literal("fragment").executes(ctx -> {
+							var player = ctx.getSource().getPlayerOrException();
+							var level = (net.minecraft.server.level.ServerLevel) player.level();
+							SunEntity sun = Abilities.nearestSun(level, player);
+							if (sun == null) {
+								ctx.getSource().sendFailure(Component.translatable("message.sunmod.no_sun"));
+								return 0;
+							}
+							SolarFragmentEntity.launch(level, sun, player);
+							return Command.SINGLE_SUCCESS;
 						}))));
 
 		ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(entries -> {

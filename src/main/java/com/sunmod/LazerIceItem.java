@@ -8,12 +8,14 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -32,7 +34,7 @@ public class LazerIceItem extends AutoFireItem {
 	/** Raio visual de cada jogador que está atirando (só no servidor). */
 	private static final Map<UUID, LaserBeamEntity> BEAMS = new HashMap<>();
 
-	private record Trace(Vec3 start, Vec3 end, SunEntity sun, Vec3 hit) {
+	private record Trace(Vec3 start, Vec3 end, SunEntity sun, Vec3 hit, SolarFragmentEntity fragment) {
 	}
 
 	public LazerIceItem(Properties properties) {
@@ -56,7 +58,7 @@ public class LazerIceItem extends AutoFireItem {
 		Vec3 end = trace.end();
 
 		UUID id = player.getUUID();
-		float endSize = trace.sun() != null ? 6.0F : 1.4F;
+		float endSize = trace.sun() != null ? 6.0F : trace.fragment() != null ? 2.5F : 1.4F;
 		LaserBeamEntity beam = BEAMS.get(id);
 		if (beam == null || beam.isRemoved() || beam.level() != level) {
 			beam = new LaserBeamEntity(ModEntities.LASER_BEAM, level);
@@ -79,6 +81,10 @@ public class LazerIceItem extends AutoFireItem {
 		level.sendParticles(ParticleTypes.SNOWFLAKE, end.x, end.y, end.z, 6, 0.5, 0.5, 0.5, 0.08);
 		level.playSound(null, player.getX(), player.getY(), player.getZ(),
 				SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 0.5F, 2.0F);
+
+		if (trace.fragment() != null && player instanceof ServerPlayer shooter) {
+			trace.fragment().hit(level, shooter, DAMAGE * Upgrades.coolingMultiplier(player));
+		}
 
 		SunEntity target = trace.sun();
 		if (target != null) {
@@ -122,8 +128,27 @@ public class LazerIceItem extends AutoFireItem {
 		if (hit != null) {
 			end = hit;
 		}
+
+		// Fragmento Solar no chão: o raio também o acerta (se estiver antes do Sol / do bloco).
+		SolarFragmentEntity fragment = null;
+		double fragBest = hit != null ? best : end.distanceToSqr(eye);
+		for (SolarFragmentEntity f : level.getEntitiesOfClass(SolarFragmentEntity.class, new AABB(eye, end).inflate(2.0))) {
+			if (!f.isPickable()) {
+				continue;
+			}
+			Optional<Vec3> p = f.getBoundingBox().inflate(0.5).clip(eye, end);
+			if (p.isPresent() && p.get().distanceToSqr(eye) < fragBest) {
+				fragBest = p.get().distanceToSqr(eye);
+				fragment = f;
+				end = p.get();
+			}
+		}
+		if (fragment != null) {
+			target = null;
+			hit = null;
+		}
 		// o raio sai um pouco à frente e abaixo dos olhos (na altura do cano)
 		Vec3 start = eye.add(look.scale(0.9)).add(0.0, -0.25, 0.0);
-		return new Trace(start, end, target, hit);
+		return new Trace(start, end, target, hit, fragment);
 	}
 }

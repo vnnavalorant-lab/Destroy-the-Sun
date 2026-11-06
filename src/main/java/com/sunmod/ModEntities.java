@@ -18,6 +18,8 @@ public final class ModEntities {
 			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("upgrader"));
 	private static final ResourceKey<EntityType<?>> LASER_BEAM_KEY =
 			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("laser_beam"));
+	private static final ResourceKey<EntityType<?>> SOLAR_FRAGMENT_KEY =
+			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("solar_fragment"));
 	private static final ResourceKey<EntityType<?>> COMET_KEY =
 			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("comet"));
 	private static final ResourceKey<EntityType<?>> MONEY_COIN_KEY =
@@ -83,6 +85,17 @@ public final class ModEntities {
 					.clientTrackingRange(32)
 					.updateInterval(1)
 					.build(LASER_BEAM_KEY));
+
+	/** Fragmento Solar: o meteoro que sai do Sol, cai perto do jogador e vira moedas quando estourado. */
+	public static final EntityType<SolarFragmentEntity> SOLAR_FRAGMENT = Registry.register(
+			BuiltInRegistries.ENTITY_TYPE, SOLAR_FRAGMENT_KEY,
+			EntityType.Builder.<SolarFragmentEntity>of(SolarFragmentEntity::new, MobCategory.MISC)
+					.sized(2.0F, 2.0F)
+					.noSave()
+					.fireImmune()
+					.clientTrackingRange(16)
+					.updateInterval(1)
+					.build(SOLAR_FRAGMENT_KEY));
 
 	/** Cometa que orbita o Sol e pode ser lançado nele com a Gravity Gun. */
 	public static final EntityType<CometEntity> COMET = Registry.register(

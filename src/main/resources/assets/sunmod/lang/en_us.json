@@ -52,5 +52,10 @@
   "message.sunmod.ability_active": "%s activated!",
   "message.sunmod.no_sun": "No Sun nearby",
   "message.sunmod.no_comet": "No comet nearby",
-  "command.sunmod.reset": "Money Coins and upgrades reset."
+  "command.sunmod.reset": "Money Coins and upgrades reset.",
+  "entity.sunmod.solar_fragment": "Solar Fragment",
+  "rarity.sunmod.common": "COMMON",
+  "item.sunmod.solar_fragment": "Solar Fragment",
+  "item.sunmod.solar_spark": "Solar Spark",
+  "message.sunmod.fragment_falling": "A Solar Fragment is falling!"
 }

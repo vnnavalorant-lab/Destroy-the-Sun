@@ -70,6 +70,10 @@ public class SunEntity extends Entity {
 	private static final double COMET_PLAYER_RANGE = 200.0;
 	/** Chance por segundo de nascer um cometa (quando há menos que o máximo): ~1 a cada 12 s. */
 	private static final double COMET_CHANCE_PER_SECOND = 1.0 / 12.0;
+	/** Fragmento Solar: chance por segundo (~1 a cada 40 s), jogador precisa estar a até 90 blocos e no máx. 2 ao mesmo tempo. */
+	public static final double FRAGMENT_CHANCE_PER_SECOND = 1.0 / 40.0;
+	private static final double FRAGMENT_PLAYER_RANGE = 90.0;
+	private static final int MAX_FRAGMENTS = 2;
 	/** Raio (blocos) de um ponto super fraco da Ofensiva Crítica. */
 	public static final double WEAK_POINT_RADIUS = 4.0;
 
@@ -177,7 +181,27 @@ public class SunEntity extends Entity {
 			this.tickShield(level);
 			this.tickWeakPoints(level);
 			this.tickComets(level);
+			this.tickFragments(level);
 		}
+	}
+
+	/** De vez em quando o Sol solta um Fragmento Solar que cai perto de um jogador por perto. */
+	private void tickFragments(ServerLevel level) {
+		if (level.getGameTime() % 20L != 7L || level.getRandom().nextDouble() > FRAGMENT_CHANCE_PER_SECOND) {
+			return;
+		}
+		Vec3 center = this.position().add(0.0, RADIUS, 0.0);
+		List<Player> near = new ArrayList<>();
+		for (Player p : level.players()) {
+			if (!p.isSpectator() && p.position().distanceToSqr(center) < FRAGMENT_PLAYER_RANGE * FRAGMENT_PLAYER_RANGE) {
+				near.add(p);
+			}
+		}
+		if (near.isEmpty()
+				|| level.getEntitiesOfClass(SolarFragmentEntity.class, this.getBoundingBox().inflate(150.0)).size() >= MAX_FRAGMENTS) {
+			return;
+		}
+		SolarFragmentEntity.launch(level, this, near.get(level.getRandom().nextInt(near.size())));
 	}
 
 	/** Ofensiva Crítica: cria {@code count} pontos super fracos em lugares aleatórios da superfície do Sol. */

@@ -119,3 +119,18 @@ preço branco = dá para pagar, vermelho = falta dinheiro. Armas/habilidades ain
 * **Teclas** das habilidades: Controles > Jogabilidade (`key.sunmod.*`); Z/X/C são os padrões que as descrições citam.
 * Avisos de habilidade (ativada, em recarga, sem Sol) aparecem na barra de ação.
 * **/sunmod reset**: zera seus Money Coins e todas as melhorias (volta ao início: só Ice Cube e Gun Ice liberados). Só afeta quem digita.
+
+## Fragmento Solar (meteoro que sai do Sol)
+Reproduz o evento do jogo original (`SolarFragmentEntity`):
+1. De vez em quando (~1 a cada 40 s, com jogador a até 90 blocos do Sol, no máx. 2 ao mesmo tempo) o Sol solta um fragmento e
+   os jogadores perto recebem na barra de ação **"Um Fragmento Solar está caindo!"**.
+2. **Voo:** um brilho branco sai da parte de cima do Sol, faz um arco no céu (3,5 s) com rastro de faíscas laranja e cai a
+   14-30 blocos de um jogador.
+3. **Pouso:** grande explosão branca/amarela; fica uma **estrela dourada** com o nome **"Fragmento Solar COMUM"** e uma
+   coluna de faíscas até o céu. Flutua devagar.
+4. **Estourar:** Ice Cube, Gun Ice e Lazer Ice acertam o fragmento (25 de vida, com os bônus de Poder de Resfriamento). Ao
+   estourar solta 8 Money Coins de $25 ($200) que voam até quem deu o golpe final. Sem ninguém acertar, some em 60 s.
+* Ajustes: `SunEntity.FRAGMENT_CHANCE_PER_SECOND`, `SolarFragmentEntity.HEALTH / COIN_COUNT / COIN_VALUE / FLIGHT_TICKS`.
+* Texturas (16x16): `textures/item/solar_spark.png` (voo) e `solar_fragment.png` (chão). Troque por arte própria se quiser.
+* Para testar sem esperar: **`/sunmod fragment`** solta um fragmento do Sol mais próximo na sua direção.
+* Diferente dos **cometas** da Gravity Gun (que orbitam o Sol e são lançados nele): o fragmento sai do Sol e cai no chão.

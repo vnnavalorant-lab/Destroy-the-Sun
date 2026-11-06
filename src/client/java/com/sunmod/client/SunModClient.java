@@ -49,6 +49,9 @@ public class SunModClient implements ClientModInitializer {
 		// Cometa: item "Fire Charge" voando, 3x maior e sempre claro (fica visível em volta do Sol).
 		EntityRendererRegistry.register(ModEntities.COMET, context -> new ThrownItemRenderer<>(context, 3.0F, true));
 
+		// Fragmento Solar: brilho branco em voo / estrela dourada no chão, 2,5x maior e sempre claro.
+		EntityRendererRegistry.register(ModEntities.SOLAR_FRAGMENT, context -> new ThrownItemRenderer<>(context, 2.5F, true));
+
 		registerAbilityKeys();
 
 		// GUI "Melhorias": o servidor manda abrir quando o jogador usa o Upgrader
