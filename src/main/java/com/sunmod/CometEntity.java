@@ -1,7 +1,6 @@
 package com.sunmod;
 
 import java.util.UUID;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -20,8 +19,8 @@ import net.minecraft.world.phys.Vec3;
  * Cometas (Gravity Gun) o jogador captura um cometa e o lança no Sol: o impacto tira {@link #DAMAGE} de vida e rende
  * {@link #COIN_VALUE} de dinheiro. Não machuca jogadores nem blocos, não é salvo no mundo e some sozinho.
  *
- * <p>Estende {@link ThrowableItemProjectile} só para reaproveitar o desenho de "item voando" (a textura é a de uma
- * Fire Charge); todo o movimento é feito à mão em {@link #tick()}.
+ * <p>Estende {@link ThrowableItemProjectile} só para herdar o básico de projétil; o desenho (bola de fogo com
+ * cauda) é do {@code SolarFxRenderer} e o movimento é todo feito à mão em {@link #tick()}. Sem partículas.
  */
 public class CometEntity extends ThrowableItemProjectile {
 	/** Dano no Sol de um cometa lançado (antes do bônus de Poder de Resfriamento). */
@@ -56,6 +55,12 @@ public class CometEntity extends ThrowableItemProjectile {
 
 	public boolean isLaunched() {
 		return this.launched;
+	}
+
+	/** A cauda e o brilho precisam aparecer de longe. */
+	@Override
+	public boolean shouldRenderAtSqrDistance(double distance) {
+		return distance < 300.0 * 300.0;
 	}
 
 	@Override
@@ -105,9 +110,6 @@ public class CometEntity extends ThrowableItemProjectile {
 		Vec3 off = this.position().subtract(center);
 		double cos = Math.cos(ORBIT_STEP), sin = Math.sin(ORBIT_STEP);
 		this.setPos(center.add(off.x * cos - off.z * sin, off.y, off.x * sin + off.z * cos));
-		if (this.tickCount % 3 == 0) {
-			level.sendParticles(ParticleTypes.FLAME, this.getX(), this.getY() + 0.5, this.getZ(), 2, 0.3, 0.3, 0.3, 0.01);
-		}
 	}
 
 	private void tickLaunched(ServerLevel level) {
@@ -122,8 +124,6 @@ public class CometEntity extends ThrowableItemProjectile {
 			return;
 		}
 		this.setPos(to);
-		level.sendParticles(ParticleTypes.FLAME, this.getX(), this.getY() + 0.5, this.getZ(), 4, 0.25, 0.25, 0.25, 0.02);
-		level.sendParticles(ParticleTypes.SMOKE, this.getX(), this.getY() + 0.5, this.getZ(), 2, 0.2, 0.2, 0.2, 0.01);
 	}
 
 	private void impact(ServerLevel level, Vec3 from) {
@@ -134,8 +134,7 @@ public class CometEntity extends ThrowableItemProjectile {
 			ServerPlayer shooter = owner instanceof ServerPlayer sp ? sp : null;
 			this.sun.applyWeaponDamage(level, shooter, from, this.launchDamage, COIN_VALUE);
 		}
-		level.sendParticles(ParticleTypes.EXPLOSION_EMITTER, from.x, from.y, from.z, 1, 0.0, 0.0, 0.0, 0.0);
-		level.sendParticles(ParticleTypes.FLAME, from.x, from.y, from.z, 80, 2.0, 2.0, 2.0, 0.2);
+		FxEntity.spawn(level, from, FxEntity.BLAST, 10.0F, 30, 0xFF8A20); // bola de fogo no ponto do impacto
 		level.playSound(null, from.x, from.y, from.z, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.PLAYERS, 2.0F, 0.8F);
 		this.discard();
 	}

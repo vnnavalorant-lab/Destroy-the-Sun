@@ -2,7 +2,11 @@ package com.sunmod.client;
 
 import com.sunmod.ModEntities;
 import com.mojang.blaze3d.platform.InputConstants;
+import com.sunmod.Instability;
+import com.sunmod.InstabilityClearedPayload;
+import com.sunmod.InstabilityStatePayload;
 import com.sunmod.OpenUpgraderPayload;
+import com.sunmod.PowerUpPayload;
 import com.sunmod.SunMod;
 import com.sunmod.UseAbilityPayload;
 import net.fabricmc.api.ClientModInitializer;
@@ -46,17 +50,25 @@ public class SunModClient implements ClientModInitializer {
 
 		EntityRendererRegistry.register(ModEntities.MONEY_COIN, MoneyCoinRenderer::new);
 		EntityRendererRegistry.register(ModEntities.LASER_BEAM, LaserBeamRenderer::new);
-		// Cometa: item "Fire Charge" voando, 3x maior e sempre claro (fica visível em volta do Sol).
-		EntityRendererRegistry.register(ModEntities.COMET, context -> new ThrownItemRenderer<>(context, 3.0F, true));
-
-		// Fragmento Solar: brilho branco em voo / estrela dourada no chão, 2,5x maior e sempre claro.
-		EntityRendererRegistry.register(ModEntities.SOLAR_FRAGMENT, context -> new ThrownItemRenderer<>(context, 2.5F, true));
+		// Efeitos visuais sem partículas (rastros, colunas de luz, discos, brilhos): cometa, Fragmento Solar e FxEntity.
+		EntityRendererRegistry.register(ModEntities.COMET, SolarFxRenderer::new);
+		EntityRendererRegistry.register(ModEntities.SOLAR_FRAGMENT, SolarFxRenderer::new);
+		EntityRendererRegistry.register(ModEntities.FX, SolarFxRenderer::new);
 
 		registerAbilityKeys();
 
 		// GUI "Melhorias": o servidor manda abrir quando o jogador usa o Upgrader
 		ClientPlayNetworking.registerGlobalReceiver(OpenUpgraderPayload.TYPE,
 				(payload, context) -> context.client().setScreen(new UpgraderScreen()));
+
+		// Evento de Instabilidade Solar: estado, conclusão e power-ups vindos do servidor.
+		ClientPlayNetworking.registerGlobalReceiver(InstabilityStatePayload.TYPE,
+				(payload, context) -> Instability.setClientState(payload.active(), payload.progress()));
+		ClientPlayNetworking.registerGlobalReceiver(InstabilityClearedPayload.TYPE,
+				(payload, context) -> InstabilityHud.onCleared(payload.seconds(), payload.reward(), payload.bonus()));
+		ClientPlayNetworking.registerGlobalReceiver(PowerUpPayload.TYPE,
+				(payload, context) -> InstabilityHud.onPowerUp(payload.id(), payload.ticks(), payload.popup()));
+		HudElementRegistry.addLast(SunMod.id("instability_hud"), new InstabilityHud());
 
 		// HUDs: Ice (inferior direito), Sun Temperature (superior direito) e Money Coins (inferior esquerdo)
 		HudElementRegistry.addLast(SunMod.id("ice_hud"), new IceHud());

@@ -18,6 +18,8 @@ public final class ModEntities {
 			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("upgrader"));
 	private static final ResourceKey<EntityType<?>> LASER_BEAM_KEY =
 			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("laser_beam"));
+	private static final ResourceKey<EntityType<?>> FX_KEY =
+			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("fx"));
 	private static final ResourceKey<EntityType<?>> SOLAR_FRAGMENT_KEY =
 			ResourceKey.create(Registries.ENTITY_TYPE, SunMod.id("solar_fragment"));
 	private static final ResourceKey<EntityType<?>> COMET_KEY =
@@ -85,6 +87,17 @@ public final class ModEntities {
 					.clientTrackingRange(32)
 					.updateInterval(1)
 					.build(LASER_BEAM_KEY));
+
+	/** Efeito visual (poça de lava, explosão, ponto fraco): só desenho, ver {@link FxEntity}. */
+	public static final EntityType<FxEntity> FX = Registry.register(
+			BuiltInRegistries.ENTITY_TYPE, FX_KEY,
+			EntityType.Builder.<FxEntity>of(FxEntity::new, MobCategory.MISC)
+					.sized(4.0F, 4.0F)
+					.noSave()
+					.fireImmune()
+					.clientTrackingRange(16)
+					.updateInterval(20)
+					.build(FX_KEY));
 
 	/** Fragmento Solar: o meteoro que sai do Sol, cai perto do jogador e vira moedas quando estourado. */
 	public static final EntityType<SolarFragmentEntity> SOLAR_FRAGMENT = Registry.register(

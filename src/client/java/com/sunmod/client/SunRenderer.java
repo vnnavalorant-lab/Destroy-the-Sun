@@ -48,7 +48,7 @@ public class SunRenderer extends EntityRenderer<SunEntity, SunRenderState> {
 		if (end != 0L) {
 			float remaining = end - (sun.level().getGameTime() + partialTick);
 			if (remaining > 0.0F) {
-				float elapsed = SunEntity.SHIELD_DURATION_TICKS - remaining;
+				float elapsed = (sun.level().getGameTime() + partialTick) - sun.getShieldStart();
 				float alpha = Math.min(Math.min(1.0F, elapsed / FADE_IN_TICKS), remaining / FADE_OUT_TICKS);
 				if (remaining < BLINK_TICKS) {
 					alpha *= 0.75F + 0.25F * (float) Math.sin(remaining * 0.6F);

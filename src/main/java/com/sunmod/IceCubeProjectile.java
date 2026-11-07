@@ -7,6 +7,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -99,6 +100,9 @@ public class IceCubeProjectile extends ThrowableItemProjectile {
 			sun.hurtServer(level, this.damageSources().thrown(this, this.getOwner()), this.damage);
 		} else if (this.level() instanceof ServerLevel level && hit.getEntity() instanceof SolarFragmentEntity fragment) {
 			fragment.hurtServer(level, this.damageSources().thrown(this, this.getOwner()), this.damage);
+		} else if (this.level() instanceof ServerLevel level && this.getOwner() instanceof Player shooter
+				&& hit.getEntity() instanceof LivingEntity enemy && SolarEnemies.isEnemy(enemy)) {
+			SolarEnemies.damage(level, enemy, shooter, this.damage); // inimigo do Evento de Instabilidade
 		}
 	}
 

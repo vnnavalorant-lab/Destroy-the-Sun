@@ -62,6 +62,13 @@ public class SunEntity extends Entity {
 	private static final EntityDataAccessor<Long> DATA_SHIELD_END =
 			SynchedEntityData.defineId(SunEntity.class, EntityDataSerializers.LONG);
 
+	/** Tick de jogo em que a barreira atual foi ligada (o cliente usa para o fade-in; vale também no evento). */
+	private static final EntityDataAccessor<Long> DATA_SHIELD_START =
+			SynchedEntityData.defineId(SunEntity.class, EntityDataSerializers.LONG);
+
+	/** Quantos Eventos de Instabilidade já foram concluídos neste Sol (a vida dos inimigos sobe 5% por evento). */
+	private int eventsCleared = 0;
+
 	/** Máximo de cometas orbitando ao mesmo tempo e raio (blocos) em que eles aparecem em volta do centro do Sol. */
 	public static final int MAX_COMETS = 3;
 	public static final double COMET_ORBIT_MIN = RADIUS + 14.0;
@@ -79,6 +86,7 @@ public class SunEntity extends Entity {
 
 	/** Pontos super fracos ativos na superfície do Sol (Ofensiva Crítica). Só no servidor, não é salvo. */
 	private final List<Vec3> weakPoints = new ArrayList<>();
+	private final List<FxEntity> weakPointFx = new ArrayList<>();
 	private long weakPointsUntil = 0L;
 	private float weakPointMultiplier = 1.0F;
 
@@ -164,6 +172,34 @@ public class SunEntity extends Entity {
 	protected void defineSynchedData(SynchedEntityData.Builder builder) {
 		builder.define(DATA_HEALTH, MAX_HEALTH);
 		builder.define(DATA_SHIELD_END, 0L);
+		builder.define(DATA_SHIELD_START, 0L);
+	}
+
+	public long getShieldStart() {
+		return this.entityData.get(DATA_SHIELD_START);
+	}
+
+	public int getEventsCleared() {
+		return this.eventsCleared;
+	}
+
+	public void addEventCleared() {
+		this.eventsCleared++;
+	}
+
+	/**
+	 * Evento de Instabilidade: liga/desliga a barreira (o Sol fica imune enquanto o evento durar). O fim é colocado
+	 * bem longe; o evento chama de novo com {@code false} quando termina.
+	 */
+	public void setEventShield(boolean on, long now) {
+		if (on) {
+			this.entityData.set(DATA_SHIELD_START, now);
+			this.entityData.set(DATA_SHIELD_END, now + 20L * 60L * 30L);
+		} else {
+			this.entityData.set(DATA_SHIELD_END, 0L);
+			this.nextShieldAt = now + SHIELD_INTERVAL_TICKS; // recomeça o ciclo normal da barreira
+			this.playSound(SoundEvents.GLASS_BREAK, 16.0F, 0.5F);
+		}
 	}
 
 	@Override
@@ -182,6 +218,7 @@ public class SunEntity extends Entity {
 			this.tickWeakPoints(level);
 			this.tickComets(level);
 			this.tickFragments(level);
+			Instability.tick(level, this);
 		}
 	}
 
@@ -216,6 +253,13 @@ public class SunEntity extends Entity {
 		}
 		this.weakPointsUntil = level.getGameTime() + durationTicks;
 		this.weakPointMultiplier = multiplier;
+		for (FxEntity old : this.weakPointFx) { // troca os desenhos antigos pelos novos
+			old.discard();
+		}
+		this.weakPointFx.clear();
+		for (Vec3 p : this.weakPoints) { // uma mira contínua em cada ponto, enquanto durar
+			this.weakPointFx.add(FxEntity.spawn(level, p, FxEntity.WEAK_POINT, (float) WEAK_POINT_RADIUS, durationTicks, 0xFF3A2A));
+		}
 	}
 
 	/** O ponto {@code surface} (superfície do Sol) está dentro de algum ponto super fraco ativo? */
@@ -231,21 +275,10 @@ public class SunEntity extends Entity {
 		return false;
 	}
 
-	/** Desenha os pontos super fracos com partículas e os apaga quando o tempo acaba. */
+	/** Apaga os pontos super fracos quando o tempo acaba (o desenho é uma {@link FxEntity} que some sozinha). */
 	private void tickWeakPoints(ServerLevel level) {
-		if (this.weakPoints.isEmpty()) {
-			return;
-		}
-		if (level.getGameTime() >= this.weakPointsUntil) {
+		if (!this.weakPoints.isEmpty() && level.getGameTime() >= this.weakPointsUntil) {
 			this.weakPoints.clear();
-			return;
-		}
-		if (level.getGameTime() % 4L != 0L) {
-			return;
-		}
-		for (Vec3 p : this.weakPoints) {
-			level.sendParticles(ParticleTypes.FLAME, p.x, p.y, p.z, 8, 1.4, 1.4, 1.4, 0.01);
-			level.sendParticles(ParticleTypes.END_ROD, p.x, p.y, p.z, 2, 0.8, 0.8, 0.8, 0.02);
 		}
 	}
 
@@ -296,6 +329,7 @@ public class SunEntity extends Entity {
 		}
 
 		if (end == 0L && now >= this.nextShieldAt) {
+			this.entityData.set(DATA_SHIELD_START, now);
 			this.entityData.set(DATA_SHIELD_END, now + SHIELD_DURATION_TICKS);
 			this.nextShieldAt = now + SHIELD_INTERVAL_TICKS;
 			this.playSound(SoundEvents.GENERIC_EXPLODE.value(), 16.0F, 1.8F);
@@ -335,7 +369,7 @@ public class SunEntity extends Entity {
 		Vec3 surface = this.surfacePoint(hitPos);
 		if (this.isWeakPointHit(level, surface)) {
 			amount *= this.weakPointMultiplier;
-			level.sendParticles(ParticleTypes.CRIT, surface.x, surface.y, surface.z, 25, 1.0, 1.0, 1.0, 0.4);
+			FxEntity.spawn(level, surface, FxEntity.BLAST, 3.0F, 12, 0xFFB040);
 			level.playSound(null, surface.x, surface.y, surface.z, SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS, 1.0F, 1.0F);
 		}
 		float remaining = this.getHealthValue() - amount;
@@ -380,6 +414,8 @@ public class SunEntity extends Entity {
 		this.setHealthValue(input.getFloatOr("SunHealth", MAX_HEALTH));
 		this.entityData.set(DATA_SHIELD_END, input.getLongOr("SunShieldEnd", 0L));
 		this.nextShieldAt = input.getLongOr("SunNextShield", 0L);
+		this.eventsCleared = input.getIntOr("SunEventsCleared", 0);
+		this.entityData.set(DATA_SHIELD_START, input.getLongOr("SunShieldStart", 0L));
 	}
 
 	@Override
@@ -387,5 +423,7 @@ public class SunEntity extends Entity {
 		output.putFloat("SunHealth", this.getHealthValue());
 		output.putLong("SunShieldEnd", this.getShieldEnd());
 		output.putLong("SunNextShield", this.nextShieldAt);
+		output.putInt("SunEventsCleared", this.eventsCleared);
+		output.putLong("SunShieldStart", this.getShieldStart());
 	}
 }

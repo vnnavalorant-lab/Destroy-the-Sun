@@ -31,8 +31,8 @@ public class IceCubeItem extends Item {
 
 	/** Tira 1 Ice Cube do inventário (munição das armas). No criativo não gasta. Devolve false se não houver. */
 	public static boolean consumeOne(Player player) {
-		if (player.getAbilities().instabuild) {
-			return true;
+		if (player.getAbilities().instabuild || Instability.isInfiniteIce()) {
+			return true; // criativo e Evento de Instabilidade: gelo infinito
 		}
 		Container inv = player.getInventory();
 		for (int i = 0; i < inv.getContainerSize(); i++) {
@@ -47,7 +47,7 @@ public class IceCubeItem extends Item {
 
 	/** Tem pelo menos 1 Ice Cube (ou está no criativo)? */
 	public static boolean hasAny(Player player) {
-		return player.getAbilities().instabuild || MachineIceEntity.countIceCubes(player) > 0;
+		return player.getAbilities().instabuild || Instability.isInfiniteIce() || MachineIceEntity.countIceCubes(player) > 0;
 	}
 
 	@Override
@@ -89,7 +89,9 @@ public class IceCubeItem extends Item {
 				SoundEvents.SNOWBALL_THROW, SoundSource.PLAYERS, 0.8F,
 				1.0F / (level.getRandom().nextFloat() * 0.4F + 1.2F) + power * 0.5F);
 		player.awardStat(Stats.ITEM_USED.get(this));
-		stack.consume(1, player); // não consome no criativo
+		if (!Instability.isInfiniteIce()) {
+			stack.consume(1, player); // não consome no criativo nem no Evento de Instabilidade
+		}
 		return true;
 	}
 }

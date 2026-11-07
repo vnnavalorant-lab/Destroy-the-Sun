@@ -1,8 +1,10 @@
 package com.sunmod;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -29,8 +31,9 @@ import net.minecraft.world.phys.Vec3;
  *       coluna de faíscas até o céu. Atirar nela com Ice Cube, Gun Ice ou Lazer Ice a estoura em Money Coins.
  *       Se ninguém acertar, some depois de {@link #LANDED_LIFE_TICKS}.</li>
  * </ol>
- * Não é salvo no mundo. O desenho é o de "item voando" (brilho = {@link ModItems#SOLAR_SPARK}, estrela =
- * {@link ModItems#SOLAR_FRAGMENT}); o movimento é todo feito à mão em {@link #tick()}.
+ * Não é salvo no mundo. Nada aqui usa partículas: o desenho (estrela, halo, rastro, coluna de luz, brilho no chão) é
+ * feito pelo {@code SolarFxRenderer} no cliente, e explosões/estouro são {@link FxEntity}. O movimento é todo feito à
+ * mão em {@link #tick()}.
  */
 public class SolarFragmentEntity extends ThrowableItemProjectile {
 	/** Vida do fragmento no chão (um Ice Cube tira 5; a Gun Ice 10 e o Lazer Ice 20, antes dos bônus). */
@@ -44,6 +47,10 @@ public class SolarFragmentEntity extends ThrowableItemProjectile {
 	public static final int LANDED_LIFE_TICKS = 20 * 60;
 	/** Jogadores a esta distância do Sol recebem o aviso de queda. */
 	public static final double WARN_RANGE = 250.0;
+
+	/** Sincronizado: o cliente só precisa saber se já pousou (muda o desenho). */
+	private static final EntityDataAccessor<Boolean> DATA_LANDED =
+			SynchedEntityData.defineId(SolarFragmentEntity.class, EntityDataSerializers.BOOLEAN);
 
 	private boolean landed;
 	private boolean burst;
@@ -100,6 +107,22 @@ public class SolarFragmentEntity extends ThrowableItemProjectile {
 	}
 
 	@Override
+	protected void defineSynchedData(SynchedEntityData.Builder builder) {
+		super.defineSynchedData(builder);
+		builder.define(DATA_LANDED, false);
+	}
+
+	public boolean isLanded() {
+		return this.entityData.get(DATA_LANDED);
+	}
+
+	/** A coluna de luz e o rastro são grandes: desenhar de longe. */
+	@Override
+	public boolean shouldRenderAtSqrDistance(double distance) {
+		return distance < 300.0 * 300.0;
+	}
+
+	@Override
 	protected Item getDefaultItem() {
 		return ModItems.SOLAR_SPARK;
 	}
@@ -124,12 +147,7 @@ public class SolarFragmentEntity extends ThrowableItemProjectile {
 		Vec3 p = this.from.lerp(this.to, u).add(0.0, 4.0 * this.arcHeight * u * (1.0 - u), 0.0);
 		this.setPos(p.x, p.y - this.getBbHeight() * 0.5, p.z);
 
-		// rastro de faíscas laranja + núcleo branco
-		level.sendParticles(ParticleTypes.FLAME, p.x, p.y, p.z, 3, 0.25, 0.25, 0.25, 0.03);
-		level.sendParticles(ParticleTypes.END_ROD, p.x, p.y, p.z, 1, 0.1, 0.1, 0.1, 0.01);
-		if (this.flightTick % 3 == 0) {
-			level.sendParticles(ParticleTypes.SMALL_FLAME, p.x, p.y, p.z, 4, 0.6, 0.6, 0.6, 0.02);
-		}
+		// (o rastro e o brilho são desenhados no cliente)
 		if (u >= 1.0) {
 			this.land(level);
 		}
@@ -146,32 +164,20 @@ public class SolarFragmentEntity extends ThrowableItemProjectile {
 		this.setCustomNameVisible(true);
 
 		double cx = this.getX(), cy = this.getY() + 1.0, cz = this.getZ();
-		level.sendParticles(ParticleTypes.EXPLOSION_EMITTER, cx, cy, cz, 1, 0.0, 0.0, 0.0, 0.0);
-		level.sendParticles(ParticleTypes.CLOUD, cx, cy, cz, 70, 2.5, 1.5, 2.5, 0.12);
-		level.sendParticles(ParticleTypes.FLAME, cx, cy, cz, 90, 2.0, 1.5, 2.0, 0.15);
-		level.sendParticles(ParticleTypes.LARGE_SMOKE, cx, cy, cz, 30, 2.0, 1.0, 2.0, 0.05);
-		level.sendParticles(ParticleTypes.END_ROD, cx, cy, cz, 40, 1.5, 1.5, 1.5, 0.3);
+		this.entityData.set(DATA_LANDED, true);
+		// explosão grande no chão: bola de fogo + onda de choque (1,5 s)
+		FxEntity.spawn(level, new Vec3(this.to.x, this.to.y - 0.5, this.to.z), FxEntity.EXPLOSION, 7.0F, 30, 0xFF9A30);
 		level.playSound(null, cx, cy, cz, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.HOSTILE, 4.0F, 0.8F);
+		Instability.onFragmentLanded(level, this.to); // no evento deixa uma poça de lava
 	}
 
 	private void tickLanded(ServerLevel level) {
 		this.landedTick++;
 		if (this.landedTick > LANDED_LIFE_TICKS) {
-			level.sendParticles(ParticleTypes.POOF, this.getX(), this.getY() + 1.0, this.getZ(), 25, 0.5, 0.5, 0.5, 0.05);
+			FxEntity.spawn(level, new Vec3(this.getX(), this.getY() + 1.0, this.getZ()), FxEntity.BLAST, 2.2F, 12, 0xFFC060);
 			this.discard();
-			return;
 		}
-		// flutua devagar
-		this.setPos(this.to.x, this.to.y + Math.sin(this.landedTick * 0.1) * 0.2, this.to.z);
-		// coluna de faíscas até o céu
-		if (this.landedTick % 2 == 0) {
-			double x = this.getX(), z = this.getZ();
-			level.sendParticles(ParticleTypes.FLAME, x, this.getY() + 16.0, z, 6, 0.12, 16.0, 0.12, 0.0);
-			level.sendParticles(ParticleTypes.END_ROD, x, this.getY() + 16.0, z, 1, 0.08, 16.0, 0.08, 0.0);
-		}
-		if (this.landedTick % 10 == 0) {
-			level.sendParticles(ParticleTypes.SMALL_FLAME, this.getX(), this.getY() + 1.0, this.getZ(), 3, 0.8, 0.8, 0.8, 0.01);
-		}
+		// parado no lugar: a estrela flutua e a coluna de luz pulsa só no desenho do cliente
 	}
 
 	/**
@@ -184,7 +190,7 @@ public class SolarFragmentEntity extends ThrowableItemProjectile {
 		}
 		this.health -= amount;
 		double cx = this.getX(), cy = this.getY() + 1.0, cz = this.getZ();
-		level.sendParticles(ParticleTypes.CRIT, cx, cy, cz, 12, 0.5, 0.5, 0.5, 0.3);
+		FxEntity.spawn(level, new Vec3(cx, cy, cz), FxEntity.BLAST, 1.8F, 9, 0xFFD060);
 		level.playSound(null, cx, cy, cz, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.PLAYERS, 1.0F, 1.2F);
 		if (this.health <= 0.0F) {
 			this.burst(level, shooter);
@@ -195,9 +201,7 @@ public class SolarFragmentEntity extends ThrowableItemProjectile {
 	private void burst(ServerLevel level, ServerPlayer shooter) {
 		this.burst = true;
 		double cx = this.getX(), cy = this.getY() + 1.0, cz = this.getZ();
-		level.sendParticles(ParticleTypes.EXPLOSION_EMITTER, cx, cy, cz, 1, 0.0, 0.0, 0.0, 0.0);
-		level.sendParticles(ParticleTypes.FLAME, cx, cy, cz, 80, 1.5, 1.5, 1.5, 0.2);
-		level.sendParticles(ParticleTypes.END_ROD, cx, cy, cz, 60, 1.5, 1.5, 1.5, 0.35);
+		FxEntity.spawn(level, new Vec3(cx, cy - 0.8, cz), FxEntity.EXPLOSION, 4.5F, 22, 0xFFD040); // estouro dourado
 		level.playSound(null, cx, cy, cz, SoundEvents.GENERIC_EXPLODE.value(), SoundSource.PLAYERS, 2.0F, 1.4F);
 		RandomSource random = level.getRandom();
 		for (int i = 0; i < COIN_COUNT; i++) {
@@ -205,6 +209,8 @@ public class SolarFragmentEntity extends ThrowableItemProjectile {
 					cz + (random.nextDouble() - 0.5) * 3.0);
 			MoneyCoinEntity.spawn(level, pos, shooter, COIN_VALUE);
 		}
+		PowerUps.grantRandom(shooter);                       // Impulso de Poder
+		Instability.addProgress(Instability.FRAGMENT_PROGRESS); // sobe a barra do evento (se houver)
 		this.discard();
 	}
 

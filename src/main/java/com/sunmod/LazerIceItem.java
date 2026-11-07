@@ -5,6 +5,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
@@ -34,7 +35,7 @@ public class LazerIceItem extends AutoFireItem {
 	/** Raio visual de cada jogador que está atirando (só no servidor). */
 	private static final Map<UUID, LaserBeamEntity> BEAMS = new HashMap<>();
 
-	private record Trace(Vec3 start, Vec3 end, SunEntity sun, Vec3 hit, SolarFragmentEntity fragment) {
+	private record Trace(Vec3 start, Vec3 end, SunEntity sun, Vec3 hit, SolarFragmentEntity fragment, LivingEntity enemy) {
 	}
 
 	public LazerIceItem(Properties properties) {
@@ -58,7 +59,7 @@ public class LazerIceItem extends AutoFireItem {
 		Vec3 end = trace.end();
 
 		UUID id = player.getUUID();
-		float endSize = trace.sun() != null ? 6.0F : trace.fragment() != null ? 2.5F : 1.4F;
+		float endSize = trace.sun() != null ? 6.0F : (trace.fragment() != null || trace.enemy() != null) ? 2.5F : 1.4F;
 		LaserBeamEntity beam = BEAMS.get(id);
 		if (beam == null || beam.isRemoved() || beam.level() != level) {
 			beam = new LaserBeamEntity(ModEntities.LASER_BEAM, level);
@@ -84,6 +85,9 @@ public class LazerIceItem extends AutoFireItem {
 
 		if (trace.fragment() != null && player instanceof ServerPlayer shooter) {
 			trace.fragment().hit(level, shooter, DAMAGE * Upgrades.coolingMultiplier(player));
+		}
+		if (trace.enemy() != null) { // inimigo do Evento de Instabilidade
+			SolarEnemies.damage(level, trace.enemy(), player, DAMAGE * Upgrades.coolingMultiplier(player));
 		}
 
 		SunEntity target = trace.sun();
@@ -147,8 +151,25 @@ public class LazerIceItem extends AutoFireItem {
 			target = null;
 			hit = null;
 		}
+
+		// Inimigos do Evento de Instabilidade (Ghoul Solar, Olho Solar): o raio também os acerta.
+		LivingEntity enemy = null;
+		double enemyBest = end.distanceToSqr(eye);
+		for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class, new AABB(eye, end).inflate(2.0), SolarEnemies::isEnemy)) {
+			Optional<Vec3> p = e.getBoundingBox().inflate(0.3).clip(eye, end);
+			if (p.isPresent() && p.get().distanceToSqr(eye) < enemyBest) {
+				enemyBest = p.get().distanceToSqr(eye);
+				enemy = e;
+				end = p.get();
+			}
+		}
+		if (enemy != null) {
+			target = null;
+			hit = null;
+			fragment = null;
+		}
 		// o raio sai um pouco à frente e abaixo dos olhos (na altura do cano)
 		Vec3 start = eye.add(look.scale(0.9)).add(0.0, -0.25, 0.0);
-		return new Trace(start, end, target, hit, fragment);
+		return new Trace(start, end, target, hit, fragment, enemy);
 	}
 }

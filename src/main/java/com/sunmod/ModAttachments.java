@@ -37,6 +37,27 @@ public final class ModAttachments {
 									HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.VAR_INT),
 							AttachmentSyncPredicate.targetOnly()));
 
+	/** Gemas (moeda rosa do Evento de Instabilidade). Salvo com o jogador, mantido ao morrer, sincronizado só com ele. */
+	public static final AttachmentType<Integer> GEMS = AttachmentRegistry.create(
+			SunMod.id("gems"),
+			builder -> builder
+					.initializer(() -> 0)
+					.persistent(Codec.INT)
+					.copyOnDeath()
+					.syncWith(ByteBufCodecs.VAR_INT, AttachmentSyncPredicate.targetOnly()));
+
+	/** Benefícios escolhidos após cada Evento de Instabilidade (id -> quantas vezes). Nunca altere no lugar. */
+	public static final AttachmentType<Map<String, Integer>> PERKS = AttachmentRegistry.create(
+			SunMod.id("perks"),
+			builder -> builder
+					.initializer(() -> new HashMap<String, Integer>())
+					.persistent(Codec.unboundedMap(Codec.STRING, Codec.INT))
+					.copyOnDeath()
+					.syncWith(
+							ByteBufCodecs.<ByteBuf, String, Integer, Map<String, Integer>>map(
+									HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.VAR_INT),
+							AttachmentSyncPredicate.targetOnly()));
+
 	public static void register() {
 		// Só carrega a classe (o campo estático faz o registro).
 	}

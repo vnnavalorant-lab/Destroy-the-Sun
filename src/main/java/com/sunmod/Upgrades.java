@@ -121,12 +121,16 @@ public final class Upgrades {
 	/** Multiplicador de cadência de tiro/carga: 1 + bônus por nível (+ Surto de Adrenalina, se ativo). */
 	public static double attackSpeedMultiplier(Player player) {
 		double mult = 1.0 + ATTACK_SPEED_PER_LEVEL * getLevel(player, "attack_speed");
+		if (PowerUps.isActive(player, PowerUps.FREQUENCY)) {
+			mult *= 1.0 + PowerUps.FREQUENCY_BONUS; // power-up Aumento de Frequência
+		}
 		return Abilities.isAdrenalineActive(player) ? mult * (1.0 + Abilities.ADRENALINE_ATTACK_BONUS) : mult;
 	}
 
 	/** Multiplicador do dano no Sol (resfriamento): 1 + bônus por nível. */
 	public static float coolingMultiplier(Player player) {
-		return (float) (1.0 + COOLING_PER_LEVEL * getLevel(player, "cooling_power"));
+		float mult = (float) (1.0 + COOLING_PER_LEVEL * getLevel(player, "cooling_power"));
+		return PowerUps.isActive(player, PowerUps.COOLING_X2) ? mult * PowerUps.COOLING_MULTIPLIER : mult; // power-up 2X Resfriamento
 	}
 
 	/** Bônus permanente de velocidade de movimento (0,04 = +4%). */

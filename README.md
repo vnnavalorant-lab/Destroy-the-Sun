@@ -124,13 +124,44 @@ preço branco = dá para pagar, vermelho = falta dinheiro. Armas/habilidades ain
 Reproduz o evento do jogo original (`SolarFragmentEntity`):
 1. De vez em quando (~1 a cada 40 s, com jogador a até 90 blocos do Sol, no máx. 2 ao mesmo tempo) o Sol solta um fragmento e
    os jogadores perto recebem na barra de ação **"Um Fragmento Solar está caindo!"**.
-2. **Voo:** um brilho branco sai da parte de cima do Sol, faz um arco no céu (3,5 s) com rastro de faíscas laranja e cai a
+2. **Voo:** uma estrela branca com halo sai da parte de cima do Sol, faz um arco no céu (3,5 s) com um rastro contínuo laranja/branco e cai a
    14-30 blocos de um jogador.
-3. **Pouso:** grande explosão branca/amarela; fica uma **estrela dourada** com o nome **"Fragmento Solar COMUM"** e uma
-   coluna de faíscas até o céu. Flutua devagar.
+3. **Pouso:** grande explosão (bola de fogo + onda de choque); fica uma **estrela dourada** com o nome **"Fragmento Solar COMUM"** e uma
+   coluna de luz até o céu. Flutua devagar.
 4. **Estourar:** Ice Cube, Gun Ice e Lazer Ice acertam o fragmento (25 de vida, com os bônus de Poder de Resfriamento). Ao
    estourar solta 8 Money Coins de $25 ($200) que voam até quem deu o golpe final. Sem ninguém acertar, some em 60 s.
 * Ajustes: `SunEntity.FRAGMENT_CHANCE_PER_SECOND`, `SolarFragmentEntity.HEALTH / COIN_COUNT / COIN_VALUE / FLIGHT_TICKS`.
-* Texturas (16x16): `textures/item/solar_spark.png` (voo) e `solar_fragment.png` (chão). Troque por arte própria se quiser.
+* Texturas: `textures/entity/fx_*.png` (ver "Efeitos visuais" abaixo).
 * Para testar sem esperar: **`/sunmod fragment`** solta um fragmento do Sol mais próximo na sua direção.
 * Diferente dos **cometas** da Gravity Gun (que orbitam o Sol e são lançados nele): o fragmento sai do Sol e cai no chão.
+
+## Evento de Instabilidade Solar
+Reproduz o evento do jogo original (`Instability`, `SolarEnemies`, `PowerUps`, `Perks`, `client/InstabilityHud`, `client/PerkScreen`):
+1. **Aviso** (6 s): "O ar está ficando mais quente ao seu redor..." na barra de ação. Começa sozinho (~1 a cada 15 min com jogador a
+   até 110 blocos do Sol) ou com **`/sunmod instability`** (teste). `/sunmod instability clear` conclui já, com recompensa.
+2. **Evento ativo:** banner "⚠ Evento de Instabilidade Solar ⚠" + "Vida do Inimigo: 1.05x" (sobe 5% por evento concluído, salvo no Sol);
+   o Sol ganha a **barreira hexagonal** (imune) durante todo o evento; **gelo infinito** (HUD "∞ GELO"); barra **INSTABILITY PROGRESS**
+   e névoa vermelha no horizonte; **chuva de fragmentos** (1 a cada 2,5 s, máx. 4) e cada um deixa uma **poça de lava** (4,5 blocos,
+   8 s, 2 de dano a cada 0,5 s); aparecem **inimigos** (máx. 6): **Ghoul Solar** (Husk de armadura dourada, 40 de vida) e **Olho Solar**
+   (Blaze, 30 de vida), com nome e barra de vida; não soltam drops, dão 3 moedas de $30.
+3. **Progresso:** fragmento estourado +8%, Ghoul +7%, Olho +9%. Em 100% o evento termina: tudo é removido, a barreira cai e cada jogador
+   perto ganha **gemas** (6 + 1 de bônus se terminar em até 45 s, `♦` rosa na HUD) e aparece "INSTABILITY CLEARED!".
+4. **Escolher Benefício** (tela com 3 cartas, não fecha com ESC): **Dose Dupla** (25% de um 2º power-up por fragmento), **Eco de Poder**
+   (+3 s nos power-ups ativos por fragmento) e **Força de Destruição** (+20% de dano nos inimigos). Cada escolha empilha e é permanente.
+* **Power-ups** (estourar um fragmento dá um aleatório por 12 s, popup "IMPULSO DE PODER!"): **Aumento de Frequência** (+75% de cadência)
+  e **2X Resfriamento** (dano x2). Valem dentro e fora do evento.
+* Ajustes: constantes de `Instability`, `SolarEnemies`, `PowerUps`, `Perks`. Falha de segurança: se ninguém terminar em 5 min, o evento acaba sem recompensa.
+* `/sunmod reset` também zera gemas, benefícios e power-ups.
+
+## Efeitos visuais (sem partículas)
+Todos os efeitos do fragmento, do cometa, dos pontos fracos e do Evento de Instabilidade são **geometria texturizada e contínua**,
+desenhada por `client/SolarFxRenderer` (mesma técnica do raio do Lazer: faixas, brilhos e discos virados para a câmera, com degradê por vértice).
+Tudo é calculado a cada frame a partir do tempo, então nada pisca nem "esguicha":
+* **Fragmento em voo:** estrela (`fx_flare`) + halo + rastro afinando de laranja largo para núcleo branco fino.
+* **Fragmento no chão:** estrela dourada (`fx_fragment`) flutuando e girando, coluna de luz de 90 blocos (planos cruzados que pulsam) e brilho no chão.
+* **Cometa:** bola de fogo com cauda (longa quando lançado, curta em órbita).
+* **`FxEntity`** (só visual, servidor cria e remove): `LAVA_POOL` (disco de lava `fx_lava` girando devagar, com brilho que pulsa e entra/sai
+  com fade), `EXPLOSION` (7 lóbulos de fogo que se abrem + clarão + onda de choque `fx_ring` no chão), `BLAST` (igual, no ar) e
+  `WEAK_POINT` (mira `fx_reticle` girando, com brilho, na superfície do Sol, enquanto durar a Ofensiva Crítica).
+* Para ajustar: tamanhos/duração em `FxEntity.spawn(...)` nos chamadores e as receitas em `SolarFxRenderer`.
+* Ainda usam partículas só os efeitos originais do Sol (flocos ao receber dano, faíscas da barreira).

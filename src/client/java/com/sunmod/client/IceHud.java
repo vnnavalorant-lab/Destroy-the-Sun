@@ -1,6 +1,7 @@
 package com.sunmod.client;
 
 import com.sunmod.IceCubeItem;
+import com.sunmod.Instability;
 import com.sunmod.MachineIceEntity;
 import com.sunmod.SunMod;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
@@ -8,6 +9,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 
@@ -49,7 +51,8 @@ public class IceHud implements HudElement {
 		}
 
 		int max = IceCubeItem.maxFor(player); // cresce com a melhoria Capacidade da Mochila
-		int count = MachineIceEntity.countIceCubes(player);
+		boolean infinite = Instability.isInfiniteIce(); // Evento de Instabilidade: "∞ GELO", barra cheia
+		int count = infinite ? max : MachineIceEntity.countIceCubes(player);
 		float ratio = Math.min(1.0F, (float) count / max);
 
 		int x = graphics.guiWidth() - WIDGET_W - MARGIN;
@@ -68,7 +71,7 @@ public class IceHud implements HudElement {
 		graphics.pose().popMatrix();
 
 		// Número com a fonte padrão do Minecraft (mc.font), branco com sombra, centralizado na barra.
-		String text = count + "/" + max;
+		String text = infinite ? Component.translatable("hud.sunmod.ice_infinite").getString() : count + "/" + max;
 		graphics.drawString(mc.font, text, x + TEXT_CENTER_X - mc.font.width(text) / 2, y + TEXT_Y, 0xFFFFFFFF, true);
 	}
 }
